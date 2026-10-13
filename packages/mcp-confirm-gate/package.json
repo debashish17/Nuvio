@@ -47,7 +47,7 @@
   },
   "homepage": "https://github.com/debashish17/acme-remit/tree/main/packages/mcp-confirm-gate#readme",
   "devDependencies": {
-    "@types/node": "^22.20.4",
+    "@types/node": "^22.20.5",
     "typescript": "~6.0.3",
     "vitest": "^5.0.3"
   }
