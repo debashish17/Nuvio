@@ -115,7 +115,7 @@ The store never holds a token, only its SHA-256, and a step-up code only as a sa
 
 ## Origin
 
-The pattern comes from [Acme Remit](https://github.com/debashish17/acme-remit), an Alexa+ add-on (MCP server) for sending money home from the UAE to India, built for the Amazon Developer Hackathon 2026, where prepare and confirm guard every transfer and cancellation. Acme Remit keeps its own SQLite-backed implementation and does not depend on this package; this package generalises the pattern with a pluggable store.
+The pattern comes from [Nuvio Remit](https://github.com/debashish17/acme-remit), an Alexa+ add-on (MCP server) for sending money home from the UAE to India, built for the Amazon Developer Hackathon 2026, where prepare and confirm guard every transfer and cancellation. Nuvio Remit keeps its own SQLite-backed implementation and does not depend on this package; this package generalises the pattern with a pluggable store.
 
 ## License
 
