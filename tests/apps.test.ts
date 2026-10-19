@@ -231,7 +231,7 @@ describe("transfer view state", () => {
         action_required: {
           type: "RFI",
           document: "updated Emirates ID",
-          how: "upload in the Acme app",
+          how: "upload in the Nuvio app",
         },
         timeline: [{ status: "FUNDS_RECEIVED" }, { status: "SCREENING" }, { status: "ON_HOLD" }],
       },

@@ -135,7 +135,7 @@ eval $I --method tools/call --tool-name quote_transfer --tool-arg send_amount=20
 eval $I --method tools/call --tool-name prepare_transfer --tool-arg quote_id=<quote_id>
 eval $I --method tools/call --tool-name confirm_transfer --tool-arg confirmation_token=<confirmation_token>
 # -> STEP_UP_REQUIRED: a code was texted to the simulated phone; read it from /sim/state, then:
-curl -s "http://127.0.0.1:3000/sim/state?since=2000-01-01T00:00:00Z" -H "x-sim-code: $SIM_ACCESS_CODE" | grep -o 'Acme: [0-9]*'
+curl -s "http://127.0.0.1:3000/sim/state?since=2000-01-01T00:00:00Z" -H "x-sim-code: $SIM_ACCESS_CODE" | grep -o 'Nuvio: [0-9]*'
 eval $I --method tools/call --tool-name confirm_transfer --tool-arg confirmation_token=<confirmation_token> --tool-arg otp=<code>
 eval $I --method tools/call --tool-name quote_transfer --tool-arg send_amount=3000 --tool-arg beneficiary_id=ben_01   # refused: MONTHLY_LIMIT
 ```

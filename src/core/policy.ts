@@ -80,7 +80,7 @@ export const USD_PEGS: Record<string, number> = {
   BHD: 0.376,
 };
 
-/** The one corridor Acme sends money in. Every other pair get_rate quotes is for information. */
+/** The one corridor Nuvio sends money in. Every other pair get_rate quotes is for information. */
 export const SENDING_PAIR = "AED/INR";
 
 /** Illustrative "typical bank" benchmark for compare_options, derived from the same mid. */

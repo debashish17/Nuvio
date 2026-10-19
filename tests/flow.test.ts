@@ -106,7 +106,7 @@ describe("demo script over MCP", () => {
         currency: "AED",
         resets_on: "2026-11-01",
         resolution:
-          "Send up to 1,500 dirhams now, or raise your limit by adding salary proof in the Acme app.",
+          "Send up to 1,500 dirhams now, or raise your limit by adding salary proof in the Nuvio app.",
       },
     });
     const why = await tool("check_limits", { refusal_code: "MONTHLY_LIMIT" });
@@ -153,7 +153,7 @@ describe("demo script over MCP", () => {
       action_required: {
         type: "RFI",
         document: "updated Emirates ID",
-        how: "upload in the Acme app",
+        how: "upload in the Nuvio app",
       },
     });
     expect(t).not.toHaveProperty("reason");

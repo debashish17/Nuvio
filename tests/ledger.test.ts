@@ -66,7 +66,7 @@ describe("LedgerService.confirm", () => {
       funding: "debit card ending 8812",
       receive_amount_minor: 5_159_809,
       eta: "within minutes",
-      receipt: "Receipt and FIRA will be available in the Acme app once paid out.",
+      receipt: "Receipt and FIRA will be available in the Nuvio app once paid out.",
     });
     const events = core.db
       .prepare("SELECT status FROM transfer_events WHERE ref = ? ORDER BY at, rowid")
@@ -315,7 +315,7 @@ describe("LedgerService.track", () => {
       action_required: {
         type: "RFI",
         document: "updated Emirates ID",
-        how: "upload in the Acme app",
+        how: "upload in the Nuvio app",
         deadline: "2026-10-17",
       },
     });

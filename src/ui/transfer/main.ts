@@ -122,14 +122,14 @@ function view(p: Phase): string {
       const off = gone || busy ? " disabled" : "";
       return `<section class="card consent${gone ? " expired" : ""}" aria-label="Enter the code from your phone">
         <header><span class="tag">Check your phone</span>${timer(p.expiresAt, "Code expires in")}</header>
-        <p>We texted a 6-digit code to your ${esc(p.sentTo)}. Type it here: it goes straight to Acme and never through the assistant.</p>
+        <p>We texted a 6-digit code to your ${esc(p.sentTo)}. Type it here: it goes straight to Nuvio and never through the assistant.</p>
         <form class="code" data-act="code" autocomplete="off" novalidate>
           <label class="sr" for="otp">6-digit code from the text message</label>
           <input id="otp" name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="••••••"${off} />
           <button class="btn yes" type="submit"${off}>${busy ? "Checking…" : "Approve"}</button>
         </form>
         <p class="err" role="alert">${esc(gone ? "The code has expired and nothing was sent. Say yes to the assistant to get a new one." : (p.error ?? ""))}</p>
-        <p class="hint">${esc(p.attemptsLeft)} ${p.attemptsLeft === 1 ? "try" : "tries"} left. Acme staff will never ask you for this code.</p>
+        <p class="hint">${esc(p.attemptsLeft)} ${p.attemptsLeft === 1 ? "try" : "tries"} left. Nuvio staff will never ask you for this code.</p>
       </section>`;
     }
 
@@ -248,7 +248,7 @@ async function submitCode(typed: string): Promise<void> {
     state = {
       ...state,
       input: undefined,
-      phase: { ...phase, error: "Couldn't reach Acme, and nothing was sent. Try again." },
+      phase: { ...phase, error: "Couldn't reach Nuvio, and nothing was sent. Try again." },
     };
   }
   busy = false;

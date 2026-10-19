@@ -125,7 +125,7 @@ describe("LimitService.check", () => {
         currency: "AED",
         resets_on: "2026-11-01",
         resolution:
-          "Send up to 1,500 dirhams now, or raise your limit by adding salary proof in the Acme app.",
+          "Send up to 1,500 dirhams now, or raise your limit by adding salary proof in the Nuvio app.",
       },
     });
   });
@@ -240,7 +240,7 @@ describe("LimitService.explain and describe", () => {
       expect(text, c).not.toMatch(/undefined|NaN/);
     }
     expect(limits.explain("MONTHLY_LIMIT", USER_ID)).toBe(
-      "On your current tier you can send 20,000 dirhams a month. You have 3,500 dirhams left until 1 November. Adding salary proof in the Acme app moves you to Verified Plus, with 60,000 dirhams a month.",
+      "On your current tier you can send 20,000 dirhams a month. You have 3,500 dirhams left until 1 November. Adding salary proof in the Nuvio app moves you to Verified Plus, with 60,000 dirhams a month.",
     );
     expect(limits.explain("CASH_PICKUP_LIMIT", USER_ID)).toMatch(
       /9,180 dirhams per transfer, 30 pickups per recipient a year, and 50,000 rupees in cash/,

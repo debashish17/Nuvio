@@ -66,7 +66,7 @@ describe("StepUpService.confirm", () => {
       {
         to: "4471",
         at: "2026-10-15T08:00:00.000Z",
-        body: "Acme: 482913 is your code to send 2,000 dirhams to Mum. It expires in 5 minutes. Acme staff will never ask you for it.",
+        body: "Nuvio: 482913 is your code to send 2,000 dirhams to Mum. It expires in 5 minutes. Nuvio staff will never ask you for it.",
       },
     ]);
     expect(transfers()).toBe(before);

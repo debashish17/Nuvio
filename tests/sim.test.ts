@@ -408,7 +408,7 @@ describe("GET /sim/state", () => {
     expect(res.body.sms).toEqual([
       expect.objectContaining({
         to: "4471",
-        body: expect.stringMatching(/^Acme: \d{6} is your code/),
+        body: expect.stringMatching(/^Nuvio: \d{6} is your code/),
       }),
     ]);
   });

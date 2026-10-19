@@ -191,7 +191,7 @@ onVoicesChanged(fillVoices);
 voiceSel.addEventListener("change", () => {
   local.set("acme.voiceName", voiceSel.value);
   setPreferredVoice(voiceSel.value);
-  if (!S.busy && !voice.muted) void speak("Hi, I'm your Acme Remit assistant.");
+  if (!S.busy && !voice.muted) void speak("Hi, I'm your Nuvio assistant.");
 });
 setProto(local.get("acme.proto", "on") !== "off");
 
@@ -237,7 +237,7 @@ function captionSpeak(sent, charIndex) {
       (m) => `<span${sent.start + m.index > charIndex ? ' class="dim"' : ""}>${esc(m[0])}</span>`,
     )
     .join(" ");
-  cap.innerHTML = `<span class="who">Acme Remit</span>${words}`;
+  cap.innerHTML = `<span class="who">Nuvio Remit</span>${words}`;
 }
 
 function setBig(on) {
@@ -907,7 +907,7 @@ function renderState(s) {
         ? { label: "Use code", onClick: () => send(`The code is ${code.split("").join(" ")}.`) }
         : null,
     );
-    announce("New text message from Acme with a one-time code.");
+    announce("New text message from Nuvio with a one-time code.");
   }
   for (const a of s.alerts) {
     toast(

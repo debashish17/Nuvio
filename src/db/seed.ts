@@ -328,7 +328,7 @@ export function seed(db: Db, now: Date = new Date()): SeedSummary {
           ? JSON.stringify({
               type: "RFI",
               document: "updated Emirates ID",
-              how: "upload in the Acme app",
+              how: "upload in the Nuvio app",
               deadline: ymd(when(7)),
             })
           : null;

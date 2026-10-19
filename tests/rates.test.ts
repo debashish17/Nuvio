@@ -160,7 +160,7 @@ describe("rates for other currencies (information only)", () => {
       pair: "GBP/EUR",
       sendable: false,
       mid_rate: 1.1396, // 0.8612 / 0.7557 (USD/GBP stored at 4 dp)
-      note: "Mid-market rate for information only. Acme sends money from AED to INR only.",
+      note: "Mid-market rate for information only. Nuvio sends money from AED to INR only.",
     });
     expect(snap).not.toHaveProperty("customer_rate");
   });
@@ -176,7 +176,7 @@ describe("rates for other currencies (information only)", () => {
     expect(await rates.snapshot("USD", "AED")).toMatchObject({ mid_rate: 3.6725 });
   });
 
-  it("keeps AED/INR as the sending rate with Acme's margin", async () => {
+  it("keeps AED/INR as the sending rate with Nuvio's margin", async () => {
     const rates = service(wideFetch());
     expect(await rates.snapshot("AED", "INR")).toMatchObject({
       pair: "AED/INR",

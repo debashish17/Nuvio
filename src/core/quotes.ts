@@ -208,7 +208,7 @@ export class QuoteService {
     if (!recipient) {
       return refuse(
         "BENEFICIARY_NOT_FOUND",
-        "That recipient is not saved. Find them with resolve_beneficiary, or add them in the Acme app.",
+        "That recipient is not saved. Find them with resolve_beneficiary, or add them in the Nuvio app.",
         { beneficiary_id: input.beneficiaryId },
       );
     }
@@ -218,7 +218,7 @@ export class QuoteService {
     if (!available.includes(method)) {
       return refuse(
         "PAYOUT_METHOD_UNAVAILABLE",
-        `${recipient.nickname} has no ${method === "upi" ? "UPI ID" : "bank account"} saved. Choose ${available.map((m) => m.replace("_", " ")).join(" or ")}, or add the details in the Acme app.`,
+        `${recipient.nickname} has no ${method === "upi" ? "UPI ID" : "bank account"} saved. Choose ${available.map((m) => m.replace("_", " ")).join(" or ")}, or add the details in the Nuvio app.`,
         { payout_method: method, available_methods: available },
       );
     }
@@ -432,14 +432,14 @@ export function checkPurpose(purpose: Purpose, r: Recipient): { warnings: Warnin
   if (purpose === "business") {
     return refuse(
       "PURPOSE_NOT_SUPPORTED",
-      "Business payments are not supported in the personal Acme app. Use Acme Business for supplier or company payments.",
+      "Business payments are not supported in the personal Nuvio app. Use Nuvio Business for supplier or company payments.",
       { purpose },
     );
   }
   if (purpose === "property_purchase") {
     return refuse(
       "PURPOSE_REQUIRES_DOCUMENTS",
-      "Property payments need a sale agreement uploaded in the Acme app before sending.",
+      "Property payments need a sale agreement uploaded in the Nuvio app before sending.",
       { purpose },
     );
   }

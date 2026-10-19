@@ -109,7 +109,7 @@ describe("seed", () => {
     expect(rfi).toEqual({
       type: "RFI",
       document: "updated Emirates ID",
-      how: "upload in the Acme app",
+      how: "upload in the Nuvio app",
       deadline: "2026-10-17",
     });
     const timeline = db

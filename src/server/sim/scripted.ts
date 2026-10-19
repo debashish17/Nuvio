@@ -473,7 +473,7 @@ function statusLine(t: Json): string {
   if (t.status === "ON_HOLD") {
     const a = t.action_required as Json | undefined;
     return a
-      ? `It's under review. Please upload ${String(a.document)} in the Acme app by ${sayDate(a.deadline)}.`
+      ? `It's under review. Please upload ${String(a.document)} in the Nuvio app by ${sayDate(a.deadline)}.`
       : "It's under review. Nothing is needed from you right now.";
   }
   if (t.status === "CANCELLED") return "That transfer was cancelled and refunded.";

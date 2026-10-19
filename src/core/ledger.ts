@@ -73,7 +73,7 @@ export const CUSTOMER_LABEL: Record<TransferStatus, string> = {
   RETURNED: "Returned",
 };
 
-const RECEIPT = "Receipt and FIRA will be available in the Acme app once paid out.";
+const RECEIPT = "Receipt and FIRA will be available in the Nuvio app once paid out.";
 const RETURN_REFUND_NOTE = "refunded at the rate on the return date; fee not refunded";
 
 interface TransferRow {
@@ -211,7 +211,7 @@ export class LedgerService {
         throw new Rollback(
           refuse(
             "CARD_DECLINED",
-            "Your card was declined and nothing was sent. Check the card in the Acme app, then try again.",
+            "Your card was declined and nothing was sent. Check the card in the Nuvio app, then try again.",
           ),
         );
       }
@@ -582,7 +582,7 @@ function windowClosed(t: TransferRow): Refusal {
       ? "This transfer is already cancelled; the refund is on its way to your card."
       : t.status === "RETURNED"
         ? "This transfer was returned by the recipient's bank and has already been refunded."
-        : "This transfer has already been sent. A recall needs the recipient's consent; Acme support can request one from the app.";
+        : "This transfer has already been sent. A recall needs the recipient's consent; Nuvio support can request one from the app.";
   return refuse("CANCEL_WINDOW_CLOSED", resolution, {
     transfer_ref: t.ref,
     status: t.status,

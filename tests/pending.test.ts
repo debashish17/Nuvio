@@ -32,7 +32,7 @@ describe("PendingService", () => {
       }),
     ]);
     expect(p.summary).toMatch(
-      /^Your 5,000 dirham transfer to My NRE account is under review: upload updated Emirates ID in the Acme app by \d+ \w+\.$/,
+      /^Your 5,000 dirham transfer to My NRE account is under review: upload updated Emirates ID in the Nuvio app by \d+ \w+\.$/,
     );
     expect(p.open_quotes).toEqual([]);
     expect(p.fired_alerts).toEqual([]);

@@ -47,6 +47,6 @@ describe("get_help content", () => {
   });
 
   it("never says recipients can be added by voice", () => {
-    expect(helpAnswer("recipients").answer).toMatch(/only in the Acme app, never by voice/);
+    expect(helpAnswer("recipients").answer).toMatch(/only in the Nuvio app, never by voice/);
   });
 });

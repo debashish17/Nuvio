@@ -105,7 +105,7 @@ export class LimitService {
 
     if (snap.monthly.used_minor + sendMinor > t.monthlyMinor) {
       const left = snap.monthly.remaining_minor;
-      const raise = `raise your limit by adding ${t.nextTier.requirement} in the Acme app`;
+      const raise = `raise your limit by adding ${t.nextTier.requirement} in the Nuvio app`;
       return refuse(
         "MONTHLY_LIMIT",
         left > 0
@@ -124,7 +124,7 @@ export class LimitService {
     if (sendMinor >= t.sourceOfFundsThresholdMinor) {
       return refuse(
         "SOURCE_OF_FUNDS_REQUIRED",
-        `Transfers of ${sayAed(t.sourceOfFundsThresholdMinor)} or more need proof of where the money came from, such as a salary certificate or bank statement, uploaded in the Acme app.`,
+        `Transfers of ${sayAed(t.sourceOfFundsThresholdMinor)} or more need proof of where the money came from, such as a salary certificate or bank statement, uploaded in the Nuvio app.`,
         { threshold_minor: t.sourceOfFundsThresholdMinor, requested_minor: sendMinor, ...aed },
       );
     }
@@ -209,25 +209,25 @@ export class LimitService {
   explain(code: RefusalCode, userId: string): string {
     const t = this.tier;
     const s = this.remaining(userId);
-    const nextTier = `Adding ${t.nextTier.requirement} in the Acme app moves you to ${t.nextTier.name}, with ${sayAed(t.nextTier.monthlyMinor)} a month.`;
+    const nextTier = `Adding ${t.nextTier.requirement} in the Nuvio app moves you to ${t.nextTier.name}, with ${sayAed(t.nextTier.monthlyMinor)} a month.`;
     const texts: Record<RefusalCode, string> = {
       MONTHLY_LIMIT: `On your current tier you can send ${sayAed(t.monthlyMinor)} a month. You have ${sayAed(s.monthly.remaining_minor)} left until ${sayDate(s.monthly.resets_on)}. ${nextTier}`,
       DAILY_LIMIT: `You can send up to ${sayAed(t.dailyMinor)} a day. You have ${sayAed(s.daily.remaining_minor)} left today; the daily limit resets at midnight UAE time.`,
       PER_TRANSACTION_LIMIT: `Card-funded transfers are capped at ${sayAed(t.perTransactionMinor)} each. You can send more in separate transfers within your daily and monthly limits.`,
       NEW_RECIPIENT_LIMIT: `The first transfer to a recipient added in the last ${t.newRecipientWindowHours} hours is capped at ${sayAed(t.newRecipientFirstTransferMinor)}, to protect you if the details were added by someone else. After ${t.newRecipientWindowHours} hours the normal limits apply.`,
-      SOURCE_OF_FUNDS_REQUIRED: `Transfers of ${sayAed(t.sourceOfFundsThresholdMinor)} or more need proof of where the money came from, such as a salary certificate or bank statement. Upload it in the Acme app.`,
+      SOURCE_OF_FUNDS_REQUIRED: `Transfers of ${sayAed(t.sourceOfFundsThresholdMinor)} or more need proof of where the money came from, such as a salary certificate or bank statement. Upload it in the Nuvio app.`,
       CASH_PICKUP_LIMIT: `Cash pickup in India follows the Money Transfer Service Scheme: at most ${sayAed(t.cashPickup.perTransactionMinor)} per transfer, ${t.cashPickup.perRecipientPerYear} pickups per recipient a year, and ${sayInr(t.cashPickup.maxReceiveMinor)} in cash. Bank deposit and UPI have no cash cap.`,
       LIMIT_EXCEEDED:
         "Your limits changed after the quote, for example because another transfer went through. Ask for a new quote.",
       AMOUNT_TOO_SMALL: "The amount must be more than the transfer fee.",
       PURPOSE_NOT_SUPPORTED:
-        "Business payments are not supported in the personal Acme app. Use Acme Business instead.",
+        "Business payments are not supported in the personal Nuvio app. Use Nuvio Business instead.",
       PURPOSE_REQUIRES_DOCUMENTS:
-        "Property payments need a sale agreement uploaded in the Acme app before sending.",
+        "Property payments need a sale agreement uploaded in the Nuvio app before sending.",
       PAYOUT_METHOD_UNAVAILABLE:
-        "That payout method needs details this recipient does not have saved. Choose another method, or add the details in the Acme app.",
+        "That payout method needs details this recipient does not have saved. Choose another method, or add the details in the Nuvio app.",
       BENEFICIARY_NOT_FOUND:
-        "That recipient is not saved. Recipients are added and name-verified in the Acme app.",
+        "That recipient is not saved. Recipients are added and name-verified in the Nuvio app.",
       QUOTE_UNKNOWN: "That quote was not found. Ask for a new quote.",
       QUOTE_EXPIRED: "Rates are held for 30 minutes. That quote has expired; ask for a new one.",
       QUOTE_ALREADY_USED: "That quote has already been used for a transfer. Ask for a new quote.",
@@ -237,19 +237,19 @@ export class LimitService {
         "Confirmations last 5 minutes. Prepare the transfer again to get a new read-back.",
       TOKEN_USED: "That confirmation has already been used, so nothing was sent twice.",
       STEP_UP_REQUIRED:
-        "Every transfer is approved twice: your yes to the read-back, then the one-time code Acme texts to your registered phone.",
+        "Every transfer is approved twice: your yes to the read-back, then the one-time code Nuvio texts to your registered phone.",
       OTP_INVALID:
-        "That code didn't match. Read the 6-digit code from the latest Acme text message.",
+        "That code didn't match. Read the 6-digit code from the latest Nuvio text message.",
       OTP_EXPIRED: "Codes last 5 minutes. Ask for a new code; nothing has been sent.",
       OTP_LOCKED:
         "After 3 wrong codes the confirmation is cancelled, so nothing was sent. Prepare the transfer again to start over.",
       CARD_DECLINED:
-        "Your card was declined and nothing was sent. Check the card in the Acme app or try again later.",
+        "Your card was declined and nothing was sent. Check the card in the Nuvio app or try again later.",
       TRANSFER_NOT_FOUND: "No transfer with that reference was found on your account.",
       CANCEL_WINDOW_CLOSED:
-        "Transfers can be cancelled only before they are sent to the payout partner. After that, a recall needs the recipient's consent; Acme support can request one from the app.",
+        "Transfers can be cancelled only before they are sent to the payout partner. After that, a recall needs the recipient's consent; Nuvio support can request one from the app.",
       CURRENCY_NOT_SUPPORTED:
-        "Rates are available for the currencies with a published ECB reference rate, plus the Gulf currencies tied to the US dollar. Acme sends money from AED to INR only.",
+        "Rates are available for the currencies with a published ECB reference rate, plus the Gulf currencies tied to the US dollar. Nuvio sends money from AED to INR only.",
       RATE_UNAVAILABLE:
         "The reference rate couldn't be fetched just now. Ask again in a few minutes.",
       ALERT_TARGET_INVALID: "The alert target must be a positive rate, such as 26.5.",
