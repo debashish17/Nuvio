@@ -5,6 +5,7 @@ import type { LedgerService } from "./ledger.js";
 import { sayAed } from "./money.js";
 import { OTP } from "./policy.js";
 import { isRefusal, refuse } from "./refusal.js";
+import { spokenNickname } from "./repo.js";
 import { addMinutes } from "./time.js";
 import { consoleLogger, type Clock, type Logger, type Refusal } from "./types.js";
 import { readCode } from "./spoken.js";
@@ -208,7 +209,7 @@ export class StepUpService {
     this.deps.sms.send(
       userId,
       info.phone,
-      `Nuvio: ${code} is your code to send ${sayAed(info.amount)} to ${info.nickname}. It expires in ${OTP.ttlMinutes} minutes. Nuvio staff will never ask you for it.`,
+      `Nuvio: ${code} is your code to send ${sayAed(info.amount)} to ${spokenNickname(info.nickname)}. It expires in ${OTP.ttlMinutes} minutes. Nuvio staff will never ask you for it.`,
     );
     this.logger.info(`stepup: code sent to phone ending ${info.phone}`);
     return refuse(

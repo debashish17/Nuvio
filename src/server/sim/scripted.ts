@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { ChatReply, ToolCallSummary } from "./chat.js";
 import type { Exchange, McpRelay } from "./relay.js";
+import { capitalise, spokenNickname } from "../../core/repo.js";
 import { spokenDigits } from "../../core/spoken.js";
 
 /**
@@ -324,7 +325,7 @@ export class ScriptedChat implements ChatEngine {
       const p = await tool("get_pending");
       const last = (p.last_by_recipient as Json[]).find((l) => l.beneficiary_id === who.id);
       if (!last)
-        return `I don't have a previous transfer to ${who.nickname}. How much would you like to send?`;
+        return `I don't have a previous transfer to ${spokenNickname(who.nickname)}. How much would you like to send?`;
       return this.sendTo(who, Number(last.send_amount), convo, tool);
     }
 
@@ -453,14 +454,14 @@ export class ScriptedChat implements ChatEngine {
     if (typeof r === "string") return r;
     const h = await tool("get_transfer_history", { beneficiary_id: r.id });
     const ref = (h.transfers as Json[] | undefined)?.[0]?.transfer_ref;
-    return ref ? String(ref) : `There are no transfers to ${r.nickname} yet.`;
+    return ref ? String(ref) : `There are no transfers to ${spokenNickname(r.nickname)} yet.`;
   }
 }
 
 function quoteLine(nickname: string, q: Json): string {
   const warn = (q.warnings as Json[] | undefined)?.find((w) => w.code === "NEAR_MONTHLY_LIMIT");
   return (
-    `${nickname} would receive ${inr(q.receive_amount)} rupees for ${aed(q.send_amount)} dirhams, after the ${aed(q.fee)} dirham fee, ${String(q.eta).split(",")[0]}.` +
+    `${capitalise(spokenNickname(nickname))} would receive ${inr(q.receive_amount)} rupees for ${aed(q.send_amount)} dirhams, after the ${aed(q.fee)} dirham fee, ${String(q.eta).split(",")[0]}.` +
     (warn ? ` That would leave ${aed(warn.remaining_after)} dirhams of this month's limit.` : "") +
     " Shall I send it?"
   );
@@ -469,7 +470,7 @@ function quoteLine(nickname: string, q: Json): string {
 function statusLine(t: Json): string {
   if (t.refused) return String((t.refused as Json).resolution);
   if (t.status === "PAID_OUT")
-    return `It has been paid out. The bank reference is ${String(t.utr)}.`;
+    return `It has been paid out. The bank reference ends in ${String(t.utr).slice(-4)}; the full reference is in the Nuvio app.`;
   if (t.status === "ON_HOLD") {
     const a = t.action_required as Json | undefined;
     return a

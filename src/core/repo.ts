@@ -72,9 +72,19 @@ export function getUser(db: Db, userId: string): User {
   };
 }
 
+/**
+ * A nickname as the assistant says it to the user: "Mum" stays "Mum", and "My NRE account"
+ * becomes "your NRE account". At the start of a sentence, wrap it in `capitalise`.
+ */
+export function spokenNickname(nickname: string): string {
+  return nickname.replace(/^my\s+/i, "your ");
+}
+
+export const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
 /** How the recipient is addressed in read-backs: "Mum", or "your NRE account" for self. */
 export function recipientPhrase(r: Recipient): string {
-  if (r.relationship === "self") return r.nickname.replace(/^my\s+/i, "your ");
+  if (r.relationship === "self") return spokenNickname(r.nickname);
   return r.nickname;
 }
 

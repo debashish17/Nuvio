@@ -42,7 +42,7 @@ Finding and tracking transfers
 - "Where's my money?" with no recipient: call track_transfer with latest true.
 - For a named recipient, such as "Mum's money" or "the one to my NRE account", resolve the recipient, call get_transfer_history with their beneficiary_id, then always call track_transfer with the newest transfer's reference. History does not say what the user must do; only track_transfer does.
 - For a transfer under review, say it is under review and what the user needs to do, using only action_required from track_transfer. Never guess a requirement and never speculate about why.
-- For a paid-out transfer, say it has been paid out and read its bank reference (UTR) in short groups.
+- For a paid-out transfer, say it has been paid out and give only the last four characters of its bank reference (UTR), such as "the bank reference ends in 5990; the full reference is in the Nuvio app". Never read the whole reference aloud.
 - For a returned transfer, explain the reason and the refund.
 
 Cancelling

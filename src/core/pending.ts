@@ -4,6 +4,7 @@ import type { LedgerService } from "./ledger.js";
 import { CUSTOMER_LABEL } from "./ledger.js";
 import { aedNumber, sayAed, sayDate } from "./money.js";
 import { isRefusal } from "./refusal.js";
+import { spokenNickname } from "./repo.js";
 import { dubaiDate } from "./time.js";
 import type { Clock, TransferStatus } from "./types.js";
 
@@ -156,14 +157,15 @@ function summarise(
       const what = a
         ? `: upload ${String(a.document)} in the Nuvio app${typeof a.deadline === "string" ? ` by ${sayDate(a.deadline)}` : ""}`
         : "; nothing is needed from you right now";
-      return `Your ${aedNumber(r.send_amount_minor)} dirham transfer to ${r.recipient} is under review${what}.`;
+      return `Your ${aedNumber(r.send_amount_minor)} dirham transfer to ${spokenNickname(r.recipient)} is under review${what}.`;
     }),
     ...alerts.map(
       (a) =>
         `Your rate alert fired: the dirham went ${a.direction} ${a.target.toFixed(2)} rupees${a.fired_at ? ` on ${sayDate(a.fired_at.slice(0, 10))}` : ""}.`,
     ),
     ...quotes.map(
-      (q) => `You have an open quote to send ${sayAed(q.send_amount_minor)} to ${q.recipient}.`,
+      (q) =>
+        `You have an open quote to send ${sayAed(q.send_amount_minor)} to ${spokenNickname(q.recipient)}.`,
     ),
   ];
   return lines.length ? lines.join(" ") : "Nothing needs your attention.";

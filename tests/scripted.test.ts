@@ -174,6 +174,18 @@ describe("scripted mode: Play demo through the real tools, no language model", (
     });
   });
 
+  it("a paid-out transfer gives only the end of its bank reference aloud", async () => {
+    const { app } = await start();
+    const r = await say(app, "Where's Mum's money?");
+    const track = r.exchanges.find((x) => x.request.params?.name === "track_transfer") as
+      { response?: { result?: { structuredContent?: { utr?: string } } } } | undefined;
+    const utr = track?.response?.result?.structuredContent?.utr ?? "";
+    expect(utr).toMatch(/^HDFCR5\d{16}$/);
+    expect(r.reply).toBe(
+      `It has been paid out. The bank reference ends in ${utr.slice(-4)}; the full reference is in the Nuvio app.`,
+    );
+  });
+
   it("free text outside the script gets a clear notice and no tool calls", async () => {
     const { app } = await start();
     const r = await say(

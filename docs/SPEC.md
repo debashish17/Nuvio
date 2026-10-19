@@ -200,7 +200,7 @@ out: { "open_quotes": [ { "quote_id": "q_7f3a", "recipient": "Mum", "beneficiary
        "fired_alerts": [ { "alert_id": "al_01", "pair": "AED/INR", "target": 26.5, "direction": "above", "fired_at": "..." } ],
        "last_by_recipient": [ { "beneficiary_id": "ben_01", "recipient": "Mum", "full_name": "Sunita Nair", "transfer_ref": "NUV-240116",
          "send_amount": 2000, "payout_method": "bank_deposit", "purpose": "family_maintenance", "date": "2026-10-01", "customer_label": "Paid out" } ],
-       "summary": "Your 5,000 dirham transfer to My NRE account is under review: upload updated Emirates ID in the Nuvio app by 8 October." }
+       "summary": "Your 5,000 dirham transfer to your NRE account is under review: upload updated Emirates ID in the Nuvio app by 8 October." }
 ```
 
 Every refusal is structured (`code`, numbers, `resolution`) so the model can explain it well. No tool ever returns a bare string error.
@@ -440,7 +440,7 @@ The simulator stands in for Alexa+ and is the official demo path: Amazon's Alexa
 4. When the model returns a tool call, the relay executes it against its own `/mcp` endpoint (a real JSON-RPC round trip, not an in-process shortcut), feeds the result back, and loops until the model returns text. It returns the reply together with each JSON-RPC request and response and its latency in ms; tokens are shown by prefix only.
 5. The reply is rendered as a chat bubble and spoken. With AWS credentials it uses Amazon Polly (`POST /sim/speak`: neural voice Kajal, Indian English, with word timings that drive the read-back highlight), cached per line and capped per day by `SIM_DAILY_TTS_CHARS`; without them, or if Polly fails, the browser's `speechSynthesis`.
 
-**The system prompt given to the model** is the one place you emulate Alexa+ behaviour: call `get_pending` at the start of a conversation and mention anything pending in one sentence, be brief, speak amounts in words, always read back a prepared transfer and wait for an explicit yes before calling `confirm_transfer`, then ask the user to read the texted code and never guess it, ask the user to choose when a recipient is ambiguous, resolve "the usual" from `get_pending`, say "recipient" and "receive amount" rather than "beneficiary" or "payout", never speculate about why a transfer is under review, answer rules, documents and tax only from `get_help`, quote Nuvio's `customer_rate` as today's rate (the mid-market rate only as a reference), and explain refusals using the `resolution` text.
+**The system prompt given to the model** is the one place you emulate Alexa+ behaviour: call `get_pending` at the start of a conversation and mention anything pending in one sentence, be brief, speak amounts in words, always read back a prepared transfer and wait for an explicit yes before calling `confirm_transfer`, then ask the user to read the texted code and never guess it, ask the user to choose when a recipient is ambiguous, resolve "the usual" from `get_pending`, say "recipient" and "receive amount" rather than "beneficiary" or "payout", never speculate about why a transfer is under review, answer rules, documents and tax only from `get_help`, quote Nuvio's `customer_rate` as today's rate (the mid-market rate only as a reference), give only the last four characters of a bank reference (UTR) aloud, and explain refusals using the `resolution` text.
 
 **Prompt caching.** Each Converse call marks the system prompt and the user's newest words with a `cachePoint`, so Bedrock bills the repeated prefix (the prompt, the 14 tool specs and the conversation so far) at the cache-read price. Measured on Nova 2 Lite: 77% less on Bedrock. Nova rejects a cache point on the tool list or inside a tool result, so those go only to other models, such as Claude. If Bedrock rejects a cache point, the call is retried without it and that point is no longer sent.
 
@@ -576,7 +576,7 @@ The planned Alexa+ CLI attempt was dropped: the FAQ says participants can't get 
 
 **Phase 5 · Oct 19–21 · Video and write-ups**
 
-- [ ] Record the 2:45 video (script in the submission checklist); upload to YouTube, public, English
+- [ ] Record the video (about 2:53; the shooting script is `docs/VIDEO_SCRIPT.md`); upload to YouTube, public, English
 - [ ] README: what it does, architecture, real-vs-simulated table, run steps that need no AWS account, test badge, threat model
 - [ ] `FEEDBACK.md` per tool used (MCP SDK, Bedrock, App Runner and CloudFormation, AWS CLI, Frankfurter, Devpost, Polly); feature requests with severity; friction log finalised
 
@@ -604,23 +604,20 @@ Everything Devpost asks for, mapped to where it lives in the repo, plus the vide
 | Feature requests (optional) | Step-up auth before consequential tools (critical); India availability for add-on testing (important); a sandbox for participants to test Alexa+ add-ons (important); per-tool latency metrics in the developer console (nice-to-have) | `FEEDBACK.md` |
 | Friction log (optional, up to +10%) | Dated entries: task, steps, expected vs actual, severity, workaround, suggestion | `FRICTION_LOG.md` |
 
-**Video script, 2:45**
+**Video script, about 2:53**
 
-Built around the step-up moment, the strongest 15 seconds we have: the assistant texts a code, the simulated phone shows it, the user reads it back, and only then does money move.
+The shooting script is [`docs/VIDEO_SCRIPT.md`](VIDEO_SCRIPT.md): what to show in each beat, every line Priya and the assistant say, the voice-over, a run sheet and a voice-over-only copy. Per Devpost's final guidance it is a pitch, not a tutorial: the problem first, then who it's for and how it uses Alexa+, then the product working. The step-up moment, the strongest 15 seconds we have, is the centrepiece.
 
-| Time | Beat | On screen |
+| Time | Beat | The point |
 | --- | --- | --- |
-| 0:00–0:12 | "Voice is the weakest way to approve a payment. Nuvio Remit is an Alexa+ add-on, a self-hosted MCP server, that makes it safe enough to send money home from the UAE to India." | The simulator, with the banner "Simulated ledger: no real funds move" in view |
-| 0:12–0:22 | "Hi, anything I should know?" → "Welcome back. Your 5,000 dirham transfer to your NRE account is under review: upload an updated Emirates ID by" a date two days ahead. Context from the ledger, across sessions | Protocol panel shows `get_pending` |
-| 0:22–0:30 | "What's the rupee at today?" → Nuvio's rate and the weekly trend | Rate card; protocol panel shows `get_rate` |
-| 0:30–1:14 | **The send.** "Send 2,000 dirhams to Mum." → the read-back with recipient, bank, purpose, fee, card and guaranteed rupees, then "Shall I go ahead?" → "Yes." → "I've texted a code to your phone ending 4471." → the simulated phone shows the SMS (code, amount, recipient) → the user reads "four eight two nine one three" → confirmed, the orb gathers into a check mark, the receipt appears. Voice-over: "The code never reaches the model. Only someone holding the phone can approve, and the code works for this one payment." | Read-back card with its 5-minute countdown, then the "Check your phone" card and the phone toast; protocol panel: `prepare_transfer` (token masked), `confirm_transfer` "code texted · nothing sent yet", `confirm_transfer` with the masked code "moves money"; ledger strip updates |
-| 1:14–1:24 | "Send her another three thousand." → refused: monthly limit, 1,500 left until 1 November, add salary proof to raise it | Refusal card and JSON in the panel: the server enforced it, not the model |
-| 1:24–1:32 | "Send 500 to Rahul." → "Do you mean your brother Rahul Nair, or your friend Rahul Menon?" | Choose card from `resolve_beneficiary` |
-| 1:32–1:48 | "Where's Mum's money?" → paid out, with the bank reference (UTR). "And the one to my NRE account?" → under review, upload an updated Emirates ID in the app, and no reason given | Receipt steps reach Paid out (dev control "Advance ticker" before the take); status card with the action needed |
-| 1:48–2:04 | "Cancel the one to my NRE account." → the preview: 5,000 dirhams back to the card → "Yes." → cancelled, 6,500 of the monthly limit free again | Cancel card, then the cancelled card; `cancel_transfer` twice in the panel; ledger strip updates |
-| 2:04–2:12 | "Does the LRS limit apply to me?" → no, it covers money sent out of India, from Nuvio's own help content, not the model's memory | Help card from `get_help`, with its source and disclaimer |
-| 2:12–2:20 | "Tell me when the dirham hits 26.5." → alert set, then fired | Alert card, then the toast (dev control "Fire rate alert") |
-| 2:20–2:38 | How it's built: 14 MCP tools over Streamable HTTP, the step-up and token tests passing, the conversation evals, CI green, runs with nothing but Node (scripted mode), Bedrock (Nova 2 Lite) or any OpenAI-compatible model for the live assistant, Polly for the voice, and the Agent Skill | Editor, terminal and the README's threat model |
-| 2:38–2:45 | "The ledger module is the only thing between this and a licensed exchange house's backend." | README real-vs-simulated table |
+| 0:00–0:14 | The problem | Voice is the weakest way to approve a payment |
+| 0:14–0:28 | An Alexa+ add-on | An MCP server; our simulator stands in for Alexa+ |
+| 0:28–0:52 | It remembers | `get_pending`: what's waiting, read from the ledger; under review, never the reason |
+| 0:52–1:43 | The send | Read-back from the server, a yes, a code texted to the phone, sent; the model never sees the code |
+| 1:43–2:01 | Limits | `MONTHLY_LIMIT` from the server; the model explains, it can't argue |
+| 2:01–2:13 | Tracking | Paid out, with only the end of the bank reference spoken |
+| 2:13–2:26 | Rate alert | Set now, raised in the next conversation |
+| 2:26–2:43 | How it's built | 14 MCP tools, the MCP Apps view, the Agent Skill, Bedrock (Nova 2 Lite), Polly, `mcp-confirm-gate` on npm |
+| 2:43–2:53 | Close | Runs on a clean clone with nothing but Node |
 
-Record each beat separately against a local run (`pnpm dev`) and stitch them; scripted mode follows exactly these lines, and a live model makes the same tool calls. Reset the demo data before each take (`pnpm db:seed`, or the dev control). If you record a hosted copy instead, never record during a deploy (the SQLite ledger resets on every deploy). Judges aren't required to watch past three minutes, so nothing important lands after 2:40.
+Left out to fit three minutes, and passed over with Play demo's Skip: the rate check, the quote before sending, the Rahul disambiguation, the NRE status question and the cancel. Record each beat separately against a local run (`pnpm dev`) and stitch them; reset the demo data before each take. A live model is recommended for the takes (about 7 cents a run with Polly), since beat 8 says the assistant runs on Bedrock. Judges aren't required to watch past three minutes, so nothing important lands after 2:40.
