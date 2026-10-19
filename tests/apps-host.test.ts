@@ -250,13 +250,15 @@ describe("the simulator as an MCP Apps host", () => {
     await say(app, "Is it done?", first.conversation_id);
     const user = seen.at(-1)?.messages?.at(-1);
     expect(user?.role).toBe("user");
-    expect(user?.content?.map((b) => b.text)).toEqual([
+    // Text blocks only: each request also ends with a prompt-cache point.
+    const texts = (m: typeof user) => m?.content?.flatMap((b) => (b.text ? [b.text] : []));
+    expect(texts(user)).toEqual([
       "[From the transfer view on screen, not the user's words] Transfer NUV-240121 confirmed in the view.",
       "Is it done?",
     ]);
     // Used once.
     await say(app, "Thanks.", first.conversation_id);
-    expect(seen.at(-1)?.messages?.at(-1)?.content).toHaveLength(1);
+    expect(texts(seen.at(-1)?.messages?.at(-1))).toHaveLength(1);
   });
 });
 

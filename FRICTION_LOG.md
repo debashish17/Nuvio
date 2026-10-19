@@ -244,3 +244,17 @@ Severity: **blocker** (stopped work), **major** (cost more than 30 min or needed
 - **Severity:** minor (caught before the first deploy; the stack has never been created). On a live deploy it would have been major.
 - **Workaround:** Set the template's `GitHubOwner` and `GitHubRepo` defaults to the `name@id` parts of `sub_claim_prefix` (`debashish17@135945553`, `Nuvio@1400521880`). This changes no other part of the template.
 - **Suggestion:** GitHub: say in the rename and transfer dialogs that OIDC subject claims will change format, show the new prefix there, and link the customization endpoint. AWS: mention the immutable `name@id` format in the IAM guide for GitHub OIDC trust policies.
+
+### 2026-10-19 · Amazon Bedrock Converse prompt caching (`us.amazon.nova-2-lite-v1:0`) · Where Nova accepts a `cachePoint` is found only by trying
+
+- **Task:** Cut the simulator's Bedrock cost. In the live run, 94.5% of it was input tokens: about 13k per turn, mostly the system prompt and 14 tool specs, resent every call. The 2026-10-02 entry above found Nova 2 Lite's explicit caching undocumented. The Price List API now lists Nova 2.0 Lite cache-read input at $0.0825 per 1M tokens and cache writes at $0.00.
+- **Steps:** Added `{ cachePoint: { type: "default" } }` after the system prompt, after the tool list, and at the end of the newest message, as the Converse docs show for Claude. Then ran a few live turns.
+- **Expected:** The cache points are accepted, or one documented list says which fields Nova supports.
+- **Actual:** Two failures, both `ValidationException` naming the field:
+  1. `Malformed input request: #/toolConfig/tools/13: extraneous key [cachePoint] is not permitted`: Nova rejects a cache point on the tool list.
+  2. `#/messages/2/content/0: extraneous key [cachePoint] is not permitted`: Nova also rejects one in a message that holds a tool result, which is where "the end of the newest message" lands on a turn's second round.
+
+  On the system prompt and on a user text message, the cache points work: three live turns billed 0 normal input tokens, with 60,150 read from the cache and 13,002 written. The same tokens uncached would have cost 77% more ($0.0248 against $0.0056).
+- **Severity:** minor (the turn failed until the fallback, then worked uncached)
+- **Workaround:** For Nova, cache points go only on the system prompt and the user's newest text message. On a `ValidationException` that mentions a cache point, the call is retried without the rejected point, and that point is not sent again (`src/server/sim/chat.ts`).
+- **Suggestion:** Bedrock: list, per model, which Converse fields accept `cachePoint`, and accept and ignore one on fields that can't be cached rather than rejecting the request. The JSON-pointer error is good: it made the cause findable in one try.
