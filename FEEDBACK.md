@@ -42,7 +42,7 @@ One section per tool, API, SDK or service used, as the Devpost submission requir
 - **Onboarding (zero to hello world):** the specification is short, and the first version was written straight from it.
 - **Would build with it again:** yes. It is the cheapest way to ship a server's safety rules alongside the server.
 
-## MCP TypeScript SDK (`@modelcontextprotocol/sdk` 1.31, Streamable HTTP)
+## MCP TypeScript SDK (`@modelcontextprotocol/sdk` 1.32, Streamable HTTP)
 
 - **Used for:**
   - The whole server: `POST /mcp` in stateless Streamable HTTP mode (spec 2025-11-25), 14 tools registered with zod input schemas, and an output schema on `get_rate`.
