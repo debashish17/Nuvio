@@ -175,6 +175,7 @@ The service runs exactly one instance (min = max = 1) because the SQLite ledger 
 | Nuvio FX margin, fees, payout methods, KYC tier limits | | yes |
 | Card funding, ledger, screening, payout partner, UTRs | | yes |
 | SMS delivery of the step-up code (shown on a simulated phone) | | yes |
+| Document upload: Emirates ID, salary proof, proof of funds, a property sale agreement, or what a review asks for | | not built: the assistant points to the Nuvio app, and the dev control "Release held transfer" stands in for the review |
 
 ## Agent Skill
 
@@ -251,6 +252,7 @@ The ledger is simulated, and these are deliberate shortcuts that a production ve
 - **References.** `NUV-` references are sequential (`MAX + 1`). Every lookup is scoped to the user, so this leaks nothing here, but production references should be random or keyed.
 - **One server per request.** Stateless Streamable HTTP builds a new `McpServer`, with its 14 tools and one resource, for each `POST /mcp`. That is fine at demo traffic; at scale, build it once per process.
 - **Quotes don't reserve limit.** Confirm re-checks limits, so a second quote that no longer fits is refused safely, but `get_pending` can still list it as open. Production should re-check open quotes, or reserve limit for them.
+- **Document upload.** Every document step ends with "upload it in the Nuvio app". A document must never pass through the model, as the step-up code never does, so the upload goes straight to the server. On a voice-only device that means a single-use link texted to the phone, tied to the request; on a screen it is an upload box in the transfer view. MCP's URL-mode elicitation (spec 2025-11-25) is the protocol-native way, if the host supports it. It also needs a document status in `track_transfer` (requested, received, being checked, accepted or rejected) and a table of what each purpose and amount requires: today only a property purchase, proof of funds and a higher tier ask for anything.
 - **Everything the simulation stands in for:** account linking (OAuth 2.1 with PKCE) instead of one Bearer token, Postgres instead of SQLite on one instance, a real SMS or push provider (preferably an in-app approval push), real sanctions screening, and a compliance review of every spoken string.
 
 ## License
