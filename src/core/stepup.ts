@@ -121,7 +121,7 @@ export class StepUpService {
     if (code === undefined) {
       return refuse(
         "OTP_INVALID",
-        "That wasn't six digits, and nothing was sent. Ask the user to read the 6-digit code from the latest Acme text again, one digit at a time.",
+        "That wasn't six digits, and nothing was sent. Ask the user to read the 6-digit code from the latest Nuvio text again, one digit at a time.",
         { attempts_left: OTP.maxAttempts - row.attempts },
       );
     }
@@ -144,7 +144,7 @@ export class StepUpService {
       }
       return refuse(
         "OTP_INVALID",
-        "That code didn't match and nothing was sent. Ask the user to read the 6-digit code from the latest Acme text again.",
+        "That code didn't match and nothing was sent. Ask the user to read the 6-digit code from the latest Nuvio text again.",
         { attempts_left: OTP.maxAttempts - attempts },
       );
     }
@@ -208,7 +208,7 @@ export class StepUpService {
     this.deps.sms.send(
       userId,
       info.phone,
-      `Acme: ${code} is your code to send ${sayAed(info.amount)} to ${info.nickname}. It expires in ${OTP.ttlMinutes} minutes. Acme staff will never ask you for it.`,
+      `Nuvio: ${code} is your code to send ${sayAed(info.amount)} to ${info.nickname}. It expires in ${OTP.ttlMinutes} minutes. Nuvio staff will never ask you for it.`,
     );
     this.logger.info(`stepup: code sent to phone ending ${info.phone}`);
     return refuse(

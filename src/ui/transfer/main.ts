@@ -1,5 +1,5 @@
 /**
- * ui://acme-remit/transfer: the MCP Apps view for a transfer (SPEC "MCP Apps view"). It draws
+ * ui://nuvio-remit/transfer: the MCP Apps view for a transfer (SPEC "MCP Apps view"). It draws
  * whatever the host last sent (quote, read-back, code entry, receipt) and does two things itself:
  * it sends the step-up code to confirm_transfer through the host, so the code never passes through
  * the model, and it polls track_transfer while a receipt can still change. Confirm and Not now are
@@ -35,7 +35,7 @@ import {
 const POLL_MS = 3000;
 const POLL_FOR_MS = 10 * 60_000;
 
-const app = new App({ name: "acme-remit-transfer", version: "1.0.0" }, {}, { autoResize: true });
+const app = new App({ name: "nuvio-remit-transfer", version: "1.0.0" }, {}, { autoResize: true });
 const root = document.getElementById("app") as HTMLElement;
 const live = document.getElementById("live") as HTMLElement;
 
@@ -122,14 +122,14 @@ function view(p: Phase): string {
       const off = gone || busy ? " disabled" : "";
       return `<section class="card consent${gone ? " expired" : ""}" aria-label="Enter the code from your phone">
         <header><span class="tag">Check your phone</span>${timer(p.expiresAt, "Code expires in")}</header>
-        <p>We texted a 6-digit code to your ${esc(p.sentTo)}. Type it here: it goes straight to Acme and never through the assistant.</p>
+        <p>We texted a 6-digit code to your ${esc(p.sentTo)}. Type it here: it goes straight to Nuvio and never through the assistant.</p>
         <form class="code" data-act="code" autocomplete="off" novalidate>
           <label class="sr" for="otp">6-digit code from the text message</label>
           <input id="otp" name="otp" inputmode="numeric" autocomplete="one-time-code" maxlength="7" placeholder="••••••"${off} />
           <button class="btn yes" type="submit"${off}>${busy ? "Checking…" : "Approve"}</button>
         </form>
         <p class="err" role="alert">${esc(gone ? "The code has expired and nothing was sent. Say yes to the assistant to get a new one." : (p.error ?? ""))}</p>
-        <p class="hint">${esc(p.attemptsLeft)} ${p.attemptsLeft === 1 ? "try" : "tries"} left. Acme staff will never ask you for this code.</p>
+        <p class="hint">${esc(p.attemptsLeft)} ${p.attemptsLeft === 1 ? "try" : "tries"} left. Nuvio staff will never ask you for this code.</p>
       </section>`;
     }
 
@@ -248,7 +248,7 @@ async function submitCode(typed: string): Promise<void> {
     state = {
       ...state,
       input: undefined,
-      phase: { ...phase, error: "Couldn't reach Acme, and nothing was sent. Try again." },
+      phase: { ...phase, error: "Couldn't reach Nuvio, and nothing was sent. Try again." },
     };
   }
   busy = false;

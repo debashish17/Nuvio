@@ -6,7 +6,7 @@ import type { Clock } from "./types.js";
 
 /**
  * AlertService (SPEC). set_rate_alert is the only writer besides confirm and cancel. Alerts track
- * Acme's customer rate, the rate the sender actually gets. evaluate() runs from the background
+ * Nuvio's customer rate, the rate the sender actually gets. evaluate() runs from the background
  * job and fires each alert once.
  */
 

@@ -4,13 +4,13 @@ import { registerAppResource, RESOURCE_MIME_TYPE } from "@modelcontextprotocol/e
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 /**
- * MCP Apps (SPEC "MCP Apps view"): the ui://acme-remit/transfer resource, and the `_meta` that
+ * MCP Apps (SPEC "MCP Apps view"): the ui://nuvio-remit/transfer resource, and the `_meta` that
  * links the four transfer tools to it. Hosts without the extension ignore `_meta`, so every other
  * client sees the same tools. The transport is stateless, so tools/list never sees the client's
  * capabilities and the link is always declared.
  */
 
-export const TRANSFER_VIEW_URI = "ui://acme-remit/transfer";
+export const TRANSFER_VIEW_URI = "ui://nuvio-remit/transfer";
 
 export const TRANSFER_VIEW_TOOLS = [
   "quote_transfer",
@@ -55,7 +55,7 @@ export function registerAppResources(server: McpServer): void {
     "Transfer view",
     TRANSFER_VIEW_URI,
     {
-      title: "Acme Remit transfer",
+      title: "Nuvio Remit transfer",
       description:
         "Shows the transfer being discussed: the quote, the read-back with its countdown, the box for the code texted to the customer's phone, and the live receipt.",
       mimeType: RESOURCE_MIME_TYPE,

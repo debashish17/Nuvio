@@ -17,7 +17,7 @@ import { consoleLogger, type Clock, type Logger, type Refusal } from "./types.js
  * ECB, and so Frankfurter, publishes no AED. One request fetches every currency ECB publishes
  * against USD for the last two weeks, stored as USD/XXX; AED/INR is USD/INR divided by the CBUAE
  * peg and GBP/INR is the cross. Any other pair of ECB or dollar-pegged currencies is a cross of
- * two USD rows, quoted for information only: Acme sends money from AED to INR alone. The latest
+ * two USD rows, quoted for information only: Nuvio sends money from AED to INR alone. The latest
  * day goes to rates_cache, every day to rates_history (the offline fallback).
  *
  * Caching is stale-while-revalidate: under 15 minutes old the cache is served as is; up to 24 hours
@@ -68,7 +68,7 @@ export function deriveAedInr(usdInr: number): number {
   return round4(usdInr / AED_PER_USD);
 }
 
-/** A mid-market rate for a pair Acme does not send in. */
+/** A mid-market rate for a pair Nuvio does not send in. */
 export interface InfoSnapshot {
   pair: string;
   sendable: false;
@@ -185,7 +185,7 @@ export class RatesService {
   }
 
   /**
-   * Everything get_rate returns, from one call. AED/INR is Acme's sending rate; any other pair is
+   * Everything get_rate returns, from one call. AED/INR is Nuvio's sending rate; any other pair is
    * the mid-market rate for information.
    */
   async snapshot(fromCode: string, toCode: string): Promise<RateSnapshot | InfoSnapshot | Refusal> {
@@ -258,7 +258,7 @@ export class RatesService {
       source:
         (latest !== undefined ? "ECB via Frankfurter, cached" : "ECB reference history, offline") +
         (pegged.length ? `; ${pegged.join(", ")} at the US dollar peg` : ""),
-      note: "Mid-market rate for information only. Acme sends money from AED to INR only.",
+      note: "Mid-market rate for information only. Nuvio sends money from AED to INR only.",
     };
   }
 

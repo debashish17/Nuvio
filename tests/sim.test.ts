@@ -278,11 +278,11 @@ describe("POST /sim/chat", () => {
     expect(JSON.stringify(bedrock.seen)).not.toContain(code);
 
     const third = await sim(app).chat(code.split("").join(" "), first.body.conversation_id);
-    expect(third.body.reply).toBe("Done. Reference ACM-240121.");
+    expect(third.body.reply).toBe("Done. Reference NUV-240121.");
     expect(card.charges).toHaveLength(1);
     // The protocol panel shows only the start of the code.
     expect(JSON.stringify(third.body.exchanges)).not.toContain(code.split("").join(" "));
-    expect(core.ledger.track(USER_ID, "ACM-240121")).toMatchObject({ status: "SCREENING" });
+    expect(core.ledger.track(USER_ID, "NUV-240121")).toMatchObject({ status: "SCREENING" });
     // Turn two carried the whole first turn, tool calls included.
     expect(bedrock.seen[4]?.messages?.length).toBe(9);
   });
@@ -380,7 +380,7 @@ describe("GET /sim/state", () => {
     const before = new Date(Date.now() - 1000).toISOString();
     let res = await sim(app).get(`/sim/state?since=${encodeURIComponent(before)}`);
     expect(res.body.latest_transfer).toMatchObject({
-      transfer_ref: "ACM-240120",
+      transfer_ref: "NUV-240120",
       customer_label: "Under review",
       send_amount: 5000,
     });
@@ -408,7 +408,7 @@ describe("GET /sim/state", () => {
     expect(res.body.sms).toEqual([
       expect.objectContaining({
         to: "4471",
-        body: expect.stringMatching(/^Acme: \d{6} is your code/),
+        body: expect.stringMatching(/^Nuvio: \d{6} is your code/),
       }),
     ]);
   });
@@ -418,18 +418,18 @@ describe("/dev controls", () => {
   it("advance, release, fire and reset", async () => {
     const { app, core } = await start();
     expect((await sim(app).dev("/dev/release")).body).toEqual({
-      ref: "ACM-240120",
+      ref: "NUV-240120",
       status: "SCREENING",
     });
     expect((await sim(app).dev("/dev/tick")).body.advanced).toEqual([
-      { ref: "ACM-240120", status: "SENT_TO_PARTNER" },
+      { ref: "NUV-240120", status: "SENT_TO_PARTNER" },
     ]);
     expect((await sim(app).dev("/dev/alert")).status).toBe(404); // nothing pending
     await core.alerts.set(USER_ID, "AED/INR", 26.5, "above");
     expect((await sim(app).dev("/dev/alert")).body).toMatchObject({ simulated: true });
 
     expect((await sim(app).dev("/dev/reset")).body).toEqual({ reset: true });
-    expect(core.ledger.track(USER_ID, "ACM-240120")).toMatchObject({ status: "ON_HOLD" });
+    expect(core.ledger.track(USER_ID, "NUV-240120")).toMatchObject({ status: "ON_HOLD" });
     expect(core.alerts.list(USER_ID)).toEqual([]);
   });
 });
@@ -516,23 +516,23 @@ describe("consent guard", () => {
     ]);
     expect(card.charges).toHaveLength(0);
     const third = await sim(app).chat(latestCode(core), first.body.conversation_id);
-    expect(third.body.reply).toBe("Done: ACM-240121.");
+    expect(third.body.reply).toBe("Done: NUV-240121.");
     expect(third.body.tool_calls).toEqual([expect.not.objectContaining({ blocked: true })]);
     expect(card.charges).toHaveLength(1);
   });
 
   it("blocks a cancel executed in the same turn as its preview", async () => {
     const bedrock = scripted([
-      toolUse("cancel_transfer", { transfer_ref: "ACM-240120" }),
+      toolUse("cancel_transfer", { transfer_ref: "NUV-240120" }),
       (input) =>
         toolUse("cancel_transfer", {
-          transfer_ref: "ACM-240120",
+          transfer_ref: "NUV-240120",
           cancel_token: fromHistory(input, "cancel_token"),
         }),
       (input) => say(String(fromHistory(input, "preview"))),
       (input) =>
         toolUse("cancel_transfer", {
-          transfer_ref: "ACM-240120",
+          transfer_ref: "NUV-240120",
           cancel_token: fromHistory(input, "cancel_token"),
         }),
       () => say("Cancelled."),
@@ -541,11 +541,11 @@ describe("consent guard", () => {
 
     const first = await sim(app).chat("Cancel the one to my NRE account");
     expect(first.body.tool_calls[1]).toMatchObject({ name: "cancel_transfer", blocked: true });
-    expect(core.ledger.track(USER_ID, "ACM-240120")).toMatchObject({ status: "ON_HOLD" });
+    expect(core.ledger.track(USER_ID, "NUV-240120")).toMatchObject({ status: "ON_HOLD" });
     expect(first.body.reply).toMatch(/^Cancel the 5,000 dirham transfer/);
 
     await sim(app).chat("Yes", first.body.conversation_id);
-    expect(core.ledger.track(USER_ID, "ACM-240120")).toMatchObject({ status: "CANCELLED" });
+    expect(core.ledger.track(USER_ID, "NUV-240120")).toMatchObject({ status: "CANCELLED" });
     expect(card.refunds).toHaveLength(1);
   });
 });
@@ -581,7 +581,7 @@ describe("history compaction", () => {
   it("sends the last two user turns in full and compacts older tool results", () => {
     const messages = [
       userText("turn 1"),
-      result({ read_back: long, ref: "ACM-1" }),
+      result({ read_back: long, ref: "NUV-1" }),
       assistant,
       userText("turn 2"),
       result({ read_back: long }),
@@ -591,12 +591,12 @@ describe("history compaction", () => {
     ] as unknown as Message[];
     const out = compactHistory(messages);
     const json = (i: number) => out[i]?.content?.[0]?.toolResult?.content?.[0]?.json;
-    expect(json(1)).toEqual({ ref: "ACM-1" });
+    expect(json(1)).toEqual({ ref: "NUV-1" });
     expect(json(4)).toEqual({ read_back: long });
     expect(json(7)).toEqual({ read_back: long });
     expect(messages[1]?.content?.[0]?.toolResult?.content?.[0]?.json).toEqual({
       read_back: long,
-      ref: "ACM-1",
+      ref: "NUV-1",
     }); // stored history untouched
   });
 });

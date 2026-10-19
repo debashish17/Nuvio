@@ -102,14 +102,14 @@ describe("seed", () => {
       string,
       unknown
     >;
-    expect(t.ref).toBe("ACM-240120");
+    expect(t.ref).toBe("NUV-240120");
     expect(t.send_amount_minor).toBe(500_000);
     expect(t.return_reason).toBeNull();
     const rfi = JSON.parse(t.hold_rfi_json as string) as Record<string, unknown>;
     expect(rfi).toEqual({
       type: "RFI",
       document: "updated Emirates ID",
-      how: "upload in the Acme app",
+      how: "upload in the Nuvio app",
       deadline: "2026-10-17",
     });
     const timeline = db
@@ -184,7 +184,7 @@ describe("seed dates", () => {
 
     expect(rows.every((r) => r.created_at <= now.toISOString())).toBe(true);
     expect(events.last <= now.toISOString()).toBe(true);
-    expect(rows.at(-1)).toMatchObject({ ref: "ACM-240120", status: "ON_HOLD" });
+    expect(rows.at(-1)).toMatchObject({ ref: "NUV-240120", status: "ON_HOLD" });
     expect(rows.map((r) => r.ref)).toEqual([...rows.map((r) => r.ref)].sort());
 
     const since = (d: Date) =>

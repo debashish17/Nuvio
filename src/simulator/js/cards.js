@@ -278,7 +278,7 @@ export function rateCard(d) {
   }
   return el(`<article class="card rate rise" aria-label="Today's rate">
     <p class="eyebrow">Today's rate · AED to INR</p>
-    <div class="mini"><span class="fig">${esc(fmt.inr(d.customer_rate))}</span><span>for 1 dirham · Acme rate</span></div>
+    <div class="mini"><span class="fig">${esc(fmt.inr(d.customer_rate))}</span><span>for 1 dirham · Nuvio rate</span></div>
     ${kv([
       ["Mid-market", esc(fmt.rate(d.mid_rate))],
       ["Trend", esc(d.trend)],
@@ -297,7 +297,7 @@ export function compareCard(d) {
     .join("");
   const b = d.benchmark;
   return el(`<article class="card compare rise" aria-label="Compare payout options">
-    <p class="eyebrow">For ${esc(fmt.aed(d.send_amount))} · Acme rate ${esc(fmt.rate(d.customer_rate))} · mid-market ${esc(fmt.rate(d.mid_rate))}</p>
+    <p class="eyebrow">For ${esc(fmt.aed(d.send_amount))} · Nuvio rate ${esc(fmt.rate(d.customer_rate))} · mid-market ${esc(fmt.rate(d.mid_rate))}</p>
     <ul class="opts">${rows}</ul>
     <p class="bench"><span>${esc(b.name)} <em>illustrative</em></span><span>rate ${esc(fmt.rate(b.rate))} · fee ${esc(fmt.aed(b.fee))}</span><span class="amt">${esc(fmt.inr(b.receive_amount))}</span></p>
     <p class="foot">${esc(d.note)}</p></article>`);
@@ -430,7 +430,7 @@ export function limitsCard(l) {
 export function helpCard(h) {
   const points = h.points.map((p) => `<li>${esc(p)}</li>`).join("");
   return el(`<article class="card help rise" aria-label="${esc(h.title)}">
-    <p class="eyebrow">Acme help · ${esc(h.title)}</p>
+    <p class="eyebrow">Nuvio help · ${esc(h.title)}</p>
     <p>${esc(h.answer)}</p>
     <ul class="points">${points}</ul>
     <p class="foot">${esc(h.source)} · ${h.last_reviewed ? `reviewed ${esc(fmt.day(h.last_reviewed))}` : "demo text, not yet compliance-reviewed"}${h.disclaimer ? ` · ${esc(h.disclaimer)}` : ""}</p></article>`);

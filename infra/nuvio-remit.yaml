@@ -1,6 +1,6 @@
 AWSTemplateFormatVersion: "2010-09-09"
 Description: >-
-  Acme Remit MCP server on AWS App Runner (us-east-1). ECR image repo, generated secrets
+  Nuvio Remit MCP server on AWS App Runner (us-east-1). ECR image repo, generated secrets
   (MCP Bearer token, simulator access code, dev-controls code), App Runner service fixed at one
   instance (the SQLite ledger lives on the instance), an instance role that may call only the
   configured Bedrock model, a GitHub Actions OIDC deploy role scoped to one repo and branch, and an
@@ -74,12 +74,17 @@ Parameters:
     Default: 100000
     MinValue: 1
     Description: Characters Polly may bill per day (each reply bills its length twice).
+  # GitHub's immutable OIDC subject format (repositories created, renamed or transferred
+  # after 2026-07-15) puts name@id in the sub claim for both owner and repository. Read the
+  # current prefix with: gh api repos/OWNER/REPO/actions/oidc/customization/sub (sub_claim_prefix).
   GitHubOwner:
     Type: String
-    Default: debashish17
+    Default: debashish17@135945553
+    Description: Owner part of the OIDC sub claim, name@id under the immutable subject format.
   GitHubRepo:
     Type: String
-    Default: acme-remit
+    Default: Nuvio@1400521880
+    Description: Repository part of the OIDC sub claim, name@id under the immutable subject format.
   GitHubBranch:
     Type: String
     Default: main
@@ -218,7 +223,7 @@ Resources:
       com.aws.cloudformation.Context:
         why: Permissions of AppRunnerInstanceRole, kept as a customer-managed policy.
     Properties:
-      Description: Acme Remit runtime - Converse on one Bedrock model, Polly speech, read its own three secrets.
+      Description: Nuvio Remit runtime - Converse on one Bedrock model, Polly speech, read its own three secrets.
       PolicyDocument:
         Version: "2012-10-17"
         Statement:
@@ -369,7 +374,7 @@ Resources:
       com.aws.cloudformation.Context:
         why: Permissions of GitHubDeployRole, kept as a customer-managed policy.
     Properties:
-      Description: Acme Remit CI deploy - push to one ECR repo, deploy one App Runner service, read the bearer secret.
+      Description: Nuvio Remit CI deploy - push to one ECR repo, deploy one App Runner service, read the bearer secret.
       PolicyDocument:
         Version: "2012-10-17"
         Statement:

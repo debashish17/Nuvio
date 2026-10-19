@@ -231,3 +231,16 @@ Severity: **blocker** (stopped work), **major** (cost more than 30 min or needed
   - report "not logged in or token expired" on a PUT 404 when `whoami` would 401
   - say that web 2FA needs an interactive terminal, and offer the URL anyway
   - print the "being processed" notice in the terminal output (it is in the debug log), with an expected wait
+
+### 2026-10-19 · GitHub repository rename and Actions OIDC · A renamed repository silently switches to the immutable subject claim format
+
+- **Task:** Point the CloudFormation OIDC trust (`infra/nuvio-remit.yaml`, `GitHubDeployRole`) at the repository after renaming it from `acme-remit` to `Nuvio`.
+- **Steps:**
+  - Renamed the repository in GitHub settings.
+  - Planned to change the `GitHubRepo` parameter to `Nuvio`, so the trust condition reads `repo:debashish17/Nuvio:ref:refs/heads/main`.
+  - Checked the claim first: `gh api repos/debashish17/Nuvio/actions/oidc/customization/sub`.
+- **Expected:** After a rename, only the repository name in the `sub` claim changes.
+- **Actual:** The API returned `"use_immutable_subject": true` and `"sub_claim_prefix": "repo:debashish17@135945553/Nuvio@1400521880"`. GitHub's changelog of 2026-04-23 says renames and transfers after July 15, 2026 adopt the immutable format. The rename dialog doesn't mention this. A trust condition built from the plain new name would refuse every token, and the error would be a generic `Not authorized to perform sts:AssumeRoleWithWebIdentity`.
+- **Severity:** minor (caught before the first deploy; the stack has never been created). On a live deploy it would have been major.
+- **Workaround:** Set the template's `GitHubOwner` and `GitHubRepo` defaults to the `name@id` parts of `sub_claim_prefix` (`debashish17@135945553`, `Nuvio@1400521880`). This changes no other part of the template.
+- **Suggestion:** GitHub: say in the rename and transfer dialogs that OIDC subject claims will change format, show the new prefix there, and link the customization endpoint. AWS: mention the immutable `name@id` format in the IAM guide for GitHub OIDC trust policies.

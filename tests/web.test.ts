@@ -50,7 +50,7 @@ describe("simulator page", () => {
     expect(res.status).toBe(200);
     expect(res.headers["content-type"]).toMatch(/text\/html/);
     expect(res.text).toContain(
-      "Simulated ledger: no real funds move. Mid-market rates are live; Acme pricing is simulated.",
+      "Simulated ledger: no real funds move. Mid-market rates are live; Nuvio pricing is simulated.",
     );
     expect(res.headers["content-security-policy"]).toBe(CSP);
     expect(CSP).not.toContain("unsafe-inline");

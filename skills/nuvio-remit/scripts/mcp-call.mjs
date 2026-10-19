@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /* global process, fetch, console */
 /**
- * Calls one Acme Remit tool over Streamable HTTP and prints its structured result.
- * Usage: MCP_BEARER_TOKEN=... node skills/acme-remit/scripts/mcp-call.mjs <tool> '<json arguments>'
+ * Calls one Nuvio Remit tool over Streamable HTTP and prints its structured result.
+ * Usage: MCP_BEARER_TOKEN=... node skills/nuvio-remit/scripts/mcp-call.mjs <tool> '<json arguments>'
  * Env:   MCP_URL (default http://127.0.0.1:3000/mcp), MCP_BEARER_TOKEN (required)
  */
 

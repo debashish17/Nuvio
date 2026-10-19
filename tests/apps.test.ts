@@ -33,7 +33,7 @@ function rpc(method: string, params?: unknown) {
     .send({ jsonrpc: "2.0", id: 1, method, ...(params === undefined ? {} : { params }) });
 }
 
-describe("MCP Apps: the ui://acme-remit/transfer resource", () => {
+describe("MCP Apps: the ui://nuvio-remit/transfer resource", () => {
   it("is listed with the MCP Apps mime type and its ui metadata", async () => {
     const res = await rpc("resources/list", {});
     expect(res.status).toBe(200);
@@ -88,7 +88,7 @@ describe("MCP Apps: the ui://acme-remit/transfer resource", () => {
   });
 
   it("an unknown ui:// resource is an error, not an empty document", async () => {
-    const res = await rpc("resources/read", { uri: "ui://acme-remit/nope" });
+    const res = await rpc("resources/read", { uri: "ui://nuvio-remit/nope" });
     expect(res.body.error).toBeDefined();
   });
 });
@@ -166,7 +166,7 @@ describe("transfer view state", () => {
       s,
       { confirmation_token: token, otp: "482913" },
       {
-        transfer_ref: "ACM-240121",
+        transfer_ref: "NUV-240121",
         status: "SCREENING",
         customer_label: "Checking details",
         recipient: "Mum",
@@ -174,13 +174,13 @@ describe("transfer view state", () => {
         receive_amount: 12607.09,
       },
     );
-    expect(s.phase).toMatchObject({ kind: "receipt", transfer: { transfer_ref: "ACM-240121" } });
+    expect(s.phase).toMatchObject({ kind: "receipt", transfer: { transfer_ref: "NUV-240121" } });
 
     // A later track result for the same transfer merges in.
     s = feed(
       s,
-      { transfer_ref: "ACM-240121" },
-      { transfer_ref: "ACM-240121", status: "PAID_OUT", utr: "HDFC1234", timeline: [] },
+      { transfer_ref: "NUV-240121" },
+      { transfer_ref: "NUV-240121", status: "PAID_OUT", utr: "HDFC1234", timeline: [] },
     );
     expect(s.phase).toMatchObject({
       kind: "receipt",
@@ -223,15 +223,15 @@ describe("transfer view state", () => {
   it("under review shows the label and the RFI, and there is no reason field to show", () => {
     const s = feed(
       initialState,
-      { transfer_ref: "ACM-240120" },
+      { transfer_ref: "NUV-240120" },
       {
-        transfer_ref: "ACM-240120",
+        transfer_ref: "NUV-240120",
         status: "ON_HOLD",
         customer_label: "Under review",
         action_required: {
           type: "RFI",
           document: "updated Emirates ID",
-          how: "upload in the Acme app",
+          how: "upload in the Nuvio app",
         },
         timeline: [{ status: "FUNDS_RECEIVED" }, { status: "SCREENING" }, { status: "ON_HOLD" }],
       },
@@ -254,19 +254,19 @@ describe("transfer view state", () => {
 
   it("tells the assistant the reference and status, never the code", () => {
     const note = confirmedContext({
-      transfer_ref: "ACM-240121",
+      transfer_ref: "NUV-240121",
       status: "SCREENING",
       customer_label: "Checking details",
       recipient: "Mum",
     });
-    expect(note.text).toMatch(/ACM-240121 to Mum, Checking details/);
+    expect(note.text).toMatch(/NUV-240121 to Mum, Checking details/);
     expect(note.structured).toEqual({
       event: "transfer_confirmed",
-      transfer_ref: "ACM-240121",
+      transfer_ref: "NUV-240121",
       status: "SCREENING",
       customer_label: "Checking details",
     });
-    expect(JSON.stringify(note)).not.toMatch(/(?<![-\d])\d{6}(?!\d)/); // a code, not ACM-240121
+    expect(JSON.stringify(note)).not.toMatch(/(?<![-\d])\d{6}(?!\d)/); // a code, not NUV-240121
   });
 
   it("keeps six digits of what was typed, and counts down safely", () => {

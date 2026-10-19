@@ -18,11 +18,11 @@ const code = (dflt: string, what: string) =>
 const getRateOutput = {
   corridor: z.string().optional().describe("Send and receive country pair, e.g. AE-IN"),
   pair: z.string(),
-  sendable: z.boolean().describe("True only for AED/INR, the pair Acme sends money in"),
+  sendable: z.boolean().describe("True only for AED/INR, the pair Nuvio sends money in"),
   customer_rate: z
     .number()
     .optional()
-    .describe("Acme's rate: rupees per dirham the recipient gets (AED/INR only)"),
+    .describe("Nuvio's rate: rupees per dirham the recipient gets (AED/INR only)"),
   mid_rate: z.number().describe("Mid-market rate"),
   fx_margin_pct: z.number().optional(),
   week_high: z.number(),

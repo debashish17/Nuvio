@@ -109,7 +109,7 @@ const httpServer = app.listen(config.PORT, (err) => {
     console.error(`Failed to listen on port ${config.PORT}: ${err.message}`);
     process.exit(1);
   }
-  console.log(`acme-remit listening on :${config.PORT} (POST /mcp, GET /health)`);
+  console.log(`nuvio-remit listening on :${config.PORT} (POST /mcp, GET /health)`);
   console.log(
     `simulator ${config.SIM_ACCESS_CODE ? "on" : "off (set SIM_ACCESS_CODE)"}; dev controls ${config.DEV_CONTROLS_CODE ? "on" : "off"}; voice ${tts ? `Polly ${config.POLLY_VOICE} (${config.POLLY_ENGINE})` : "browser"}`,
   );

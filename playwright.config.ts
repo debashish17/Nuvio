@@ -32,7 +32,7 @@ export default defineConfig({
     timeout: 120_000,
     env: {
       PORT: String(PORT),
-      DB_PATH: join(tmpdir(), `acme-remit-e2e-${process.pid}.db`),
+      DB_PATH: join(tmpdir(), `nuvio-remit-e2e-${process.pid}.db`),
       SIM_MODE: "scripted",
       POLLY_VOICE: "none",
       MCP_BEARER_TOKEN: "e2e-bearer-token-0123456789",

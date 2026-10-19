@@ -33,7 +33,7 @@ export function bearerAuth(expectedToken: string): RequestHandler {
     if (match?.[1] && timingSafeEqual(digest(match[1].trim()), expected)) {
       (req as Request & { auth?: AuthInfo }).auth = {
         token: match[1].trim(),
-        clientId: "acme-remit-demo",
+        clientId: "nuvio-remit-demo",
         scopes: [],
         extra: { ...principal },
       };

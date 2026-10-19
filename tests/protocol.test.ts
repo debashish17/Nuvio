@@ -73,7 +73,7 @@ describe("initialize", () => {
       .send({ jsonrpc: "2.0", id: 1, method: "initialize", params: initParams(PROTOCOL) });
     expect(res.status).toBe(200);
     expect(res.body.result.protocolVersion).toBe(PROTOCOL);
-    expect(res.body.result.serverInfo.name).toBe("acme-remit");
+    expect(res.body.result.serverInfo.name).toBe("nuvio-remit");
     expect(res.body.result.capabilities.tools).toBeDefined();
   });
 
@@ -153,8 +153,8 @@ describe("tools/call", () => {
     ["quote_transfer", { send_amount: 500, beneficiary_id: "ben_02" }],
     ["prepare_transfer", { quote_id: "q_unknown" }],
     ["confirm_transfer", { confirmation_token: "ct_unknown" }],
-    ["track_transfer", { transfer_ref: "ACM-240120" }],
-    ["cancel_transfer", { transfer_ref: "ACM-240119" }],
+    ["track_transfer", { transfer_ref: "NUV-240120" }],
+    ["cancel_transfer", { transfer_ref: "NUV-240119" }],
     ["get_transfer_history", { months: 3 }],
     ["check_limits", {}],
     ["set_rate_alert", { target: 26.5, direction: "above" }],
@@ -225,7 +225,7 @@ describe("tools/call", () => {
   });
 
   it("refusals are structured results, not errors", async () => {
-    const res = await call("cancel_transfer", { transfer_ref: "ACM-240119" });
+    const res = await call("cancel_transfer", { transfer_ref: "NUV-240119" });
     expect(res.body.result.isError).toBeFalsy();
     expect(res.body.result.structuredContent).toMatchObject({
       refused: { code: "CANCEL_WINDOW_CLOSED", status: "PAID_OUT" },
@@ -246,17 +246,17 @@ describe("tools/call", () => {
   });
 
   it("track_transfer with latest: true tracks the latest transfer even if a ref is sent too", async () => {
-    const latest = await call("track_transfer", { latest: true, transfer_ref: "ACM-240119" });
-    expect(latest.body.result.structuredContent).toMatchObject({ transfer_ref: "ACM-240120" });
-    const byRef = await call("track_transfer", { transfer_ref: "ACM-240119" });
-    expect(byRef.body.result.structuredContent).toMatchObject({ transfer_ref: "ACM-240119" });
+    const latest = await call("track_transfer", { latest: true, transfer_ref: "NUV-240119" });
+    expect(latest.body.result.structuredContent).toMatchObject({ transfer_ref: "NUV-240120" });
+    const byRef = await call("track_transfer", { transfer_ref: "NUV-240119" });
+    expect(byRef.body.result.structuredContent).toMatchObject({ transfer_ref: "NUV-240119" });
   });
 
   it("get_pending returns cross-session context in major units", async () => {
     const res = await call("get_pending", {});
     expect(res.body.result.isError).toBeFalsy();
     expect(res.body.result.structuredContent).toMatchObject({
-      under_review: [{ transfer_ref: "ACM-240120", send_amount: 5000 }],
+      under_review: [{ transfer_ref: "NUV-240120", send_amount: 5000 }],
       last_by_recipient: expect.arrayContaining([
         expect.objectContaining({ recipient: "Mum", send_amount: 2000 }),
       ]),
@@ -271,7 +271,7 @@ describe("tools/call", () => {
       capabilities: {},
       clientInfo: { name: "t", version: "0" },
     });
-    expect(init.body.result.serverInfo).toEqual({ name: "acme-remit", version: pkg.version });
+    expect(init.body.result.serverInfo).toEqual({ name: "nuvio-remit", version: pkg.version });
   });
 
   it("get_rate quotes other currencies for information and refuses unknown ones", async () => {

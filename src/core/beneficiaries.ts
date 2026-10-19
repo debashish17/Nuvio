@@ -5,7 +5,7 @@ import type { Recipient } from "./types.js";
 
 /**
  * BeneficiaryService (SPEC). Read-only by design: adding or editing recipients by voice is a fraud
- * surface, so new recipients are added and name-verified in the Acme app.
+ * surface, so new recipients are added and name-verified in the Nuvio app.
  */
 
 export interface LastSent {
@@ -21,7 +21,7 @@ export type ResolveResult =
   | { ambiguous: true; candidates: Recipient[] }
   | { notFound: true; hint: string };
 
-export const NOT_FOUND_HINT = "Recipients are added and name-verified in the Acme app.";
+export const NOT_FOUND_HINT = "Recipients are added and name-verified in the Nuvio app.";
 
 /** Words a sender might use for a relationship, beyond each recipient's own aliases. */
 const RELATIONSHIP_WORDS: Record<string, string[]> = {

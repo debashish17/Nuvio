@@ -38,7 +38,7 @@ export interface MountedView {
   teardown(): Promise<void>;
 }
 
-const HOST_INFO = { name: "acme-remit-simulator", version: "1.0.0" };
+const HOST_INFO = { name: "nuvio-remit-simulator", version: "1.0.0" };
 const MAX_HEIGHT = 720;
 
 export function mountView(opts: MountOptions): MountedView {

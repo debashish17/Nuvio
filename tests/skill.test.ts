@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { TOOL_DESCRIPTIONS } from "../src/server/tools/descriptions.js";
 
-const dir = new URL("../skills/acme-remit/", import.meta.url);
+const dir = new URL("../skills/nuvio-remit/", import.meta.url);
 const skill = readFileSync(new URL("SKILL.md", dir), "utf8");
 
 /** The YAML front matter's top-level `key: value` lines (enough for name and description). */
@@ -17,11 +17,11 @@ function frontMatter(md: string): Record<string, string> {
   );
 }
 
-describe("Agent Skill: skills/acme-remit (agentskills.io format)", () => {
+describe("Agent Skill: skills/nuvio-remit (agentskills.io format)", () => {
   const fm = frontMatter(skill);
 
   it("has a valid name that matches its folder, and a description", () => {
-    expect(fm.name).toBe("acme-remit");
+    expect(fm.name).toBe("nuvio-remit");
     expect(fm.name).toMatch(/^[a-z0-9]+(-[a-z0-9]+)*$/);
     expect(fm.name?.length).toBeLessThanOrEqual(64);
     expect(fm.description?.length).toBeGreaterThan(0);

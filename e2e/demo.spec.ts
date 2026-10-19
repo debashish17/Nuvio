@@ -37,7 +37,7 @@ test("Play all runs every demo beat in scripted mode, with the transfer views", 
   await expect(page.locator(".card.appview")).toHaveCount(5);
   await expect(page.locator(".card.consent:not(.cancel)")).toHaveCount(0);
   const receipt = page.frameLocator("iframe.appframe").nth(1);
-  await expect(receipt.locator("section")).toHaveAttribute("aria-label", "Transfer ACM-240121");
+  await expect(receipt.locator("section")).toHaveAttribute("aria-label", "Transfer NUV-240121");
 });
 
 test("a code typed into the MCP Apps view confirms, never through the model", async ({ page }) => {
@@ -67,7 +67,7 @@ test("a code typed into the MCP Apps view confirms, never through the model", as
   await view.locator("#otp").fill(wrong);
   await expect(view.locator(".err")).toContainText("2 tries left");
   await view.locator("#otp").fill(code);
-  await expect(view.locator("section")).toHaveAttribute("aria-label", /^Transfer ACM-\d+$/);
+  await expect(view.locator("section")).toHaveAttribute("aria-label", /^Transfer NUV-\d+$/);
 
   // The view keeps tracking until the money is paid out (the ticker runs every second here).
   await expect(view.locator(".tag")).toHaveText("Paid out", { timeout: 30_000 });

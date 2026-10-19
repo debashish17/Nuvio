@@ -3,13 +3,13 @@
 
 export const TOOL_DESCRIPTIONS = {
   get_rate:
-    "Get today's exchange rate with the 7-day trend. For AED to INR it is Acme's rate for sending money to India; for any other pair of supported currencies it is the mid-market rate, for information only, because Acme sends money only from AED to INR. Use when the user asks about the rate, the rupee or another currency, or whether now is a good time to send.",
+    "Get today's exchange rate with the 7-day trend. For AED to INR it is Nuvio's rate for sending money to India; for any other pair of supported currencies it is the mid-market rate, for information only, because Nuvio sends money only from AED to INR. Use when the user asks about the rate, the rupee or another currency, or whether now is a good time to send.",
   compare_options:
-    "Compare what the recipient would receive for a send amount across Acme's payout methods (bank deposit, UPI, cash pickup), including fee and arrival time, and show Acme's rate against the mid-market rate and a typical bank rate. Use when the user asks which option is best or how much will be received.",
+    "Compare what the recipient would receive for a send amount across Nuvio's payout methods (bank deposit, UPI, cash pickup), including fee and arrival time, and show Nuvio's rate against the mid-market rate and a typical bank rate. Use when the user asks which option is best or how much will be received.",
   list_beneficiaries:
     "List the user's saved recipients: nickname, relationship, bank or UPI, payout method, and when they last received money. Use when the user asks who they can send to.",
   resolve_beneficiary:
-    'Find one saved recipient from a name or nickname such as "Mum", "my brother" or "Sunita". Call this before quoting whenever the user names a person. Returns one match, or candidates to ask the user to choose from. Never invents a recipient; new recipients are added in the Acme app.',
+    'Find one saved recipient from a name or nickname such as "Mum", "my brother" or "Sunita". Call this before quoting whenever the user names a person. Returns one match, or candidates to ask the user to choose from. Never invents a recipient; new recipients are added in the Nuvio app.',
   quote_transfer:
     "Price a transfer: fee, locked rate, guaranteed receive amount in rupees, arrival time, and any limit warnings or document requirements for the purpose. Does not move money. Returns a quote_id with rate and fee held for 30 minutes.",
   prepare_transfer:
@@ -25,7 +25,7 @@ export const TOOL_DESCRIPTIONS = {
   check_limits:
     "Show the user's KYC tier, remaining per-transaction, daily and monthly limits, cash-pickup caps, the reset date, and explain any refusal code in plain words with how to resolve it.",
   get_help:
-    "Answer general questions about sending money with Acme from the UAE to India, from Acme's reviewed help content: documents, how sending works, recipients, payout methods, fees and rates, limits and tiers, tracking and receipts, cancellations and refunds, NRE and NRO accounts, the Liberalised Remittance Scheme (LRS), tax on money received in India, and staying safe. Use it instead of general knowledge for any rule, document or tax question; for the user's own numbers use check_limits or track_transfer.",
+    "Answer general questions about sending money with Nuvio from the UAE to India, from Nuvio's reviewed help content: documents, how sending works, recipients, payout methods, fees and rates, limits and tiers, tracking and receipts, cancellations and refunds, NRE and NRO accounts, the Liberalised Remittance Scheme (LRS), tax on money received in India, and staying safe. Use it instead of general knowledge for any rule, document or tax question; for the user's own numbers use check_limits or track_transfer.",
   get_pending:
     'Get what is waiting on the user since their last conversation: open quotes, transfers under review and what the user must do, rate alerts that fired recently, and the last transfer to each recipient. Call it once at the start of a conversation to mention anything that needs attention, and use last_by_recipient to resolve requests like "send the usual to Mum".',
   set_rate_alert:

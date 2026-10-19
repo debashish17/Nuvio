@@ -24,7 +24,7 @@ describe("PendingService", () => {
     const p = core.pending.pending(USER_ID);
     expect(p.under_review).toEqual([
       expect.objectContaining({
-        transfer_ref: "ACM-240120",
+        transfer_ref: "NUV-240120",
         recipient: "My NRE account",
         send_amount_minor: 500_000,
         customer_label: "Under review",
@@ -32,7 +32,7 @@ describe("PendingService", () => {
       }),
     ]);
     expect(p.summary).toMatch(
-      /^Your 5,000 dirham transfer to My NRE account is under review: upload updated Emirates ID in the Acme app by \d+ \w+\.$/,
+      /^Your 5,000 dirham transfer to My NRE account is under review: upload updated Emirates ID in the Nuvio app by \d+ \w+\.$/,
     );
     expect(p.open_quotes).toEqual([]);
     expect(p.fired_alerts).toEqual([]);
@@ -41,9 +41,9 @@ describe("PendingService", () => {
   it("gives the last transfer per recipient, skipping cancelled and returned ones", () => {
     const last = core.pending.pending(USER_ID).last_by_recipient;
     expect(last.map((l) => [l.recipient, l.transfer_ref, l.send_amount_minor])).toEqual([
-      ["My NRE account", "ACM-240120", 500_000],
-      ["Rahul", "ACM-240117", 150_000],
-      ["Mum", "ACM-240116", 200_000],
+      ["My NRE account", "NUV-240120", 500_000],
+      ["Rahul", "NUV-240117", 150_000],
+      ["Mum", "NUV-240116", 200_000],
     ]);
     // Rahul Menon's only transfer was returned, so there is no "usual" for him.
     expect(last.find((l) => l.beneficiary_id === "ben_03")).toBeUndefined();

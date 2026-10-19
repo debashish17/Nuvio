@@ -12,7 +12,7 @@ describe("parseConfig", () => {
       BEDROCK_MODEL_ID: "us.amazon.nova-2-lite-v1:0",
       AWS_REGION: "us-east-1",
       RATES_URL: "https://api.frankfurter.dev/v1",
-      DB_PATH: "./data/acme-remit.db",
+      DB_PATH: "./data/nuvio-remit.db",
       TICKER_MS: 15000,
       SIM_DAILY_BEDROCK_CALLS: 500,
       POLLY_VOICE: "Kajal",

@@ -24,7 +24,7 @@ const CALLS = [
   ["prepare_transfer", { quote_id: "q_latency_check" }], // QUOTE_UNKNOWN
   ["confirm_transfer", { confirmation_token: "ct_latency_check" }], // TOKEN_UNKNOWN
   ["track_transfer", { latest: true }],
-  ["cancel_transfer", { transfer_ref: "ACM-240119" }], // CANCEL_WINDOW_CLOSED (paid out)
+  ["cancel_transfer", { transfer_ref: "NUV-240119" }], // CANCEL_WINDOW_CLOSED (paid out)
   ["get_transfer_history", { months: 3 }],
   ["check_limits", {}],
   ["set_rate_alert", { target: 0, direction: "above" }], // ALERT_TARGET_INVALID

@@ -85,7 +85,7 @@ describe("demo script over MCP", () => {
     const otp = latestCode();
     const done = await tool("confirm_transfer", { confirmation_token: token, otp });
     expect(done).toMatchObject({
-      transfer_ref: "ACM-240121",
+      transfer_ref: "NUV-240121",
       status: "SCREENING",
       receive_amount: 51598.09,
       charged: 2000,
@@ -106,7 +106,7 @@ describe("demo script over MCP", () => {
         currency: "AED",
         resets_on: "2026-11-01",
         resolution:
-          "Send up to 1,500 dirhams now, or raise your limit by adding salary proof in the Acme app.",
+          "Send up to 1,500 dirhams now, or raise your limit by adding salary proof in the Nuvio app.",
       },
     });
     const why = await tool("check_limits", { refusal_code: "MONTHLY_LIMIT" });
@@ -141,33 +141,33 @@ describe("demo script over MCP", () => {
     clock.advance(15_000);
     core.ledger.tick();
     const t = await tool("track_transfer", { latest: true });
-    expect(t).toMatchObject({ transfer_ref: "ACM-240121", status: "PAID_OUT", recipient: "Mum" });
+    expect(t).toMatchObject({ transfer_ref: "NUV-240121", status: "PAID_OUT", recipient: "Mum" });
     expect(t.utr).toMatch(/^HDFCR5\d{16}$/);
   });
 
   it('"And the one to my NRE account?": under review, with what to do, and no reason', async () => {
-    const t = await tool("track_transfer", { transfer_ref: "ACM-240120" });
+    const t = await tool("track_transfer", { transfer_ref: "NUV-240120" });
     expect(t).toMatchObject({
       status: "ON_HOLD",
       customer_label: "Under review",
       action_required: {
         type: "RFI",
         document: "updated Emirates ID",
-        how: "upload in the Acme app",
+        how: "upload in the Nuvio app",
       },
     });
     expect(t).not.toHaveProperty("reason");
   });
 
   it('"Cancel the one to my NRE account": preview, "Yes", cancelled, 6,500 free', async () => {
-    const preview = await tool("cancel_transfer", { transfer_ref: "ACM-240120" });
+    const preview = await tool("cancel_transfer", { transfer_ref: "NUV-240120" });
     expect(preview.preview).toBe(
       "Cancel the 5,000 dirham transfer to your NRE account. 5,000 dirhams, including the 15 dirham fee, go back to your card ending 8812 within 2 to 7 working days. Shall I cancel it?",
     );
     expect(preview.refund).toBe(5000);
 
     const done = await tool("cancel_transfer", {
-      transfer_ref: "ACM-240120",
+      transfer_ref: "NUV-240120",
       cancel_token: preview.cancel_token,
     });
     expect(done).toMatchObject({

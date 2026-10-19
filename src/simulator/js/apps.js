@@ -129,7 +129,7 @@ export function createAppHost({
       v.mounted = mod.mountView({
         parent: box,
         frameUrl: r.frame_url,
-        title: "Acme Remit transfer view (MCP App)",
+        title: "Nuvio Remit transfer view (MCP App)",
         hostContext: hostContext(box),
         callTool: (name, args) => callFromView(v, name, args),
         sendMessage: async (text) => {

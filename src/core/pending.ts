@@ -154,7 +154,7 @@ function summarise(
     ...review.map((r) => {
       const a = r.action_required;
       const what = a
-        ? `: upload ${String(a.document)} in the Acme app${typeof a.deadline === "string" ? ` by ${sayDate(a.deadline)}` : ""}`
+        ? `: upload ${String(a.document)} in the Nuvio app${typeof a.deadline === "string" ? ` by ${sayDate(a.deadline)}` : ""}`
         : "; nothing is needed from you right now";
       return `Your ${aedNumber(r.send_amount_minor)} dirham transfer to ${r.recipient} is under review${what}.`;
     }),

@@ -1,7 +1,7 @@
 /**
  * Builds the MCP Apps pieces that run in a browser (SPEC "MCP Apps view") into .generated/ui/:
  *
- *   transfer.html  the ui://acme-remit/transfer view: one self-contained HTML document, script
+ *   transfer.html  the ui://nuvio-remit/transfer view: one self-contained HTML document, script
  *                  and styles inline, as MCP Apps hosts expect (no network requests).
  *   app-host.js    the simulator's host side (the SDK's AppBridge plus our glue), an ES module
  *                  the simulator page imports.

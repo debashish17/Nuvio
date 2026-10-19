@@ -1,6 +1,6 @@
-# acme-remit — working rules for Claude Code
+# nuvio-remit — working rules for Claude Code
 
-Acme Remit is a self-hosted MCP server (spec 2025-11-25, Streamable HTTP) for the
+Nuvio Remit is a self-hosted MCP server (spec 2025-11-25, Streamable HTTP) for the
 Alexa+ track of the "Build, Ship, Shape: Amazon Developer Hackathon" (Devpost,
 deadline 2026-10-23 12:00 PDT). It exposes a single remittance provider's
 capabilities for the UAE→India corridor over a simulated ledger, plus a web

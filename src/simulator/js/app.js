@@ -71,7 +71,7 @@ const S = {
 };
 
 /* The page is an MCP Apps host: the transfer tools' results show in the server's own view
-   (ui://acme-remit/transfer) instead of the page's cards, which remain the fallback. */
+   (ui://nuvio-remit/transfer) instead of the page's cards, which remain the fallback. */
 const apps = createAppHost({
   theme: () => (body.classList.contains("mono") ? "mono" : "blue"),
   onExchanges: appExchanges,
@@ -141,7 +141,7 @@ function setTheme(th) {
   body.classList.add(th);
   orb.setTheme(th);
   $$("[data-th]").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.th === th)));
-  local.set("acme.theme", th);
+  local.set("nuvio.theme", th);
   apps.retheme();
 }
 function setVoice(on) {
@@ -149,12 +149,12 @@ function setVoice(on) {
   if (!on) stopSpeaking();
   $("#sndBtn").setAttribute("aria-pressed", String(on));
   $("#sndBtn span").textContent = on ? "Voice on" : "Voice off";
-  local.set("acme.voice", on ? "on" : "off");
+  local.set("nuvio.voice", on ? "on" : "off");
 }
 function setProto(on) {
   body.classList.toggle("noproto", !on);
   $("#protoBtn").setAttribute("aria-pressed", String(on));
-  local.set("acme.proto", on ? "on" : "off");
+  local.set("nuvio.proto", on ? "on" : "off");
 }
 function setFocus(on) {
   body.classList.toggle("focus", on);
@@ -165,8 +165,8 @@ $$("[data-th]").forEach((b) => b.addEventListener("click", () => setTheme(b.data
 $("#sndBtn").addEventListener("click", () => setVoice(voice.muted));
 $("#protoBtn").addEventListener("click", () => setProto(body.classList.contains("noproto")));
 $("#hideBar").addEventListener("click", () => setFocus(!body.classList.contains("focus")));
-setTheme(local.get("acme.theme", "blue") === "mono" ? "mono" : "blue");
-setVoice(local.get("acme.voice", "on") !== "off");
+setTheme(local.get("nuvio.theme", "blue") === "mono" ? "mono" : "blue");
+setVoice(local.get("nuvio.voice", "on") !== "off");
 
 /* ---------- voice picker ---------- */
 const voiceSel = $("#voiceSel");
@@ -181,7 +181,7 @@ function fillVoices() {
     voiceSel.append(new Option(`${name} · ${v.lang}`, v.name));
   }
   // Polly is the default when offered; a saved choice wins if it is still available.
-  const chosen = local.get("acme.voiceName", pollyVoice ? POLLY : "");
+  const chosen = local.get("nuvio.voiceName", pollyVoice ? POLLY : "");
   const available = [...voiceSel.options].some((o) => o.value === chosen);
   voiceSel.value = available ? chosen : pollyVoice ? POLLY : "";
   setPreferredVoice(voiceSel.value);
@@ -189,11 +189,11 @@ function fillVoices() {
 fillVoices();
 onVoicesChanged(fillVoices);
 voiceSel.addEventListener("change", () => {
-  local.set("acme.voiceName", voiceSel.value);
+  local.set("nuvio.voiceName", voiceSel.value);
   setPreferredVoice(voiceSel.value);
-  if (!S.busy && !voice.muted) void speak("Hi, I'm your Acme Remit assistant.");
+  if (!S.busy && !voice.muted) void speak("Hi, I'm your Nuvio assistant.");
 });
-setProto(local.get("acme.proto", "on") !== "off");
+setProto(local.get("nuvio.proto", "on") !== "off");
 
 /* ---------- caption under the orb ---------- */
 function captionYou(firm, interim = "") {
@@ -237,7 +237,7 @@ function captionSpeak(sent, charIndex) {
       (m) => `<span${sent.start + m.index > charIndex ? ' class="dim"' : ""}>${esc(m[0])}</span>`,
     )
     .join(" ");
-  cap.innerHTML = `<span class="who">Acme Remit</span>${words}`;
+  cap.innerHTML = `<span class="who">Nuvio Remit</span>${words}`;
 }
 
 function setBig(on) {
@@ -907,7 +907,7 @@ function renderState(s) {
         ? { label: "Use code", onClick: () => send(`The code is ${code.split("").join(" ")}.`) }
         : null,
     );
-    announce("New text message from Acme with a one-time code.");
+    announce("New text message from Nuvio with a one-time code.");
   }
   for (const a of s.alerts) {
     toast(

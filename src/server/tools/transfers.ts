@@ -11,8 +11,8 @@ import { TOOL_DESCRIPTIONS } from "./descriptions.js";
 
 const ref = z
   .string()
-  .regex(/^ACM-\d{1,10}$/i, "a transfer reference like ACM-240120")
-  .describe("Transfer reference, e.g. ACM-240120.");
+  .regex(/^NUV-\d{1,10}$/i, "a transfer reference like NUV-240120")
+  .describe("Transfer reference, e.g. NUV-240120.");
 
 export function registerTransferTools(server: McpServer, core: Core): void {
   registerAppTool(

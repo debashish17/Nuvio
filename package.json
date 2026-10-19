@@ -1,8 +1,8 @@
 {
-  "name": "acme-remit",
+  "name": "nuvio-remit",
   "version": "1.0.0",
   "private": true,
-  "description": "Acme Remit: self-hosted MCP server for UAE to India remittances over a simulated ledger (Alexa+ hackathon)",
+  "description": "Nuvio Remit: self-hosted MCP server for UAE to India remittances over a simulated ledger (Alexa+ hackathon)",
   "author": "debashish17",
   "license": "MIT",
   "type": "module",

@@ -127,7 +127,7 @@ describe("QuoteService.create", () => {
         code: "PURPOSE_REQUIRES_DOCUMENTS",
         purpose: "property_purchase",
         resolution:
-          "Property payments need a sale agreement uploaded in the Acme app before sending.",
+          "Property payments need a sale agreement uploaded in the Nuvio app before sending.",
       },
     });
   });
