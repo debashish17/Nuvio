@@ -35,6 +35,13 @@ body {
   color: var(--ink);
   font: 14px/1.45 var(--sans);
 }
+::selection {
+  background: color-mix(in srgb, var(--accent) 34%, transparent);
+  color: var(--ink);
+}
+input {
+  caret-color: var(--accent);
+}
 .sr {
   position: absolute;
   width: 1px;
@@ -128,9 +135,9 @@ header {
 .say {
   margin: 0;
   padding: 10px 12px;
-  border-left: 2px solid var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
   background: var(--bg2);
-  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  border-radius: var(--radius-sm);
   color: var(--ink);
 }
 .note,
@@ -182,6 +189,24 @@ header {
   background: var(--accent);
   border-color: var(--accent);
   color: var(--color-text-inverse, light-dark(#ffffff, #06080e));
+}
+.btn {
+  transition:
+    border-color 0.2s,
+    filter 0.2s,
+    transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.btn:not(:disabled):hover {
+  border-color: var(--accent);
+}
+.btn.yes:not(:disabled):hover {
+  filter: brightness(1.08);
+}
+.btn:not(:disabled):active {
+  transform: scale(0.97);
+}
+.code input:focus-visible {
+  border-color: var(--accent);
 }
 .btn:disabled {
   opacity: 0.45;
@@ -263,5 +288,13 @@ input:focus-visible {
       opacity: 0;
       transform: translateY(4px);
     }
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn {
+    transition: none;
+  }
+  .btn:not(:disabled):active {
+    transform: none;
   }
 }
