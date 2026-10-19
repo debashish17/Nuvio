@@ -41,8 +41,12 @@ export interface RateSnapshot {
   customer_rate: number;
   mid_rate: number;
   fx_margin_pct: number;
-  week_high: number;
-  week_low: number;
+  /** This week's range of Nuvio's rate, the one the customer gets. */
+  customer_week_high: number;
+  customer_week_low: number;
+  /** This week's range of the mid-market rate, for reference. */
+  mid_week_high: number;
+  mid_week_low: number;
   trend: string;
   as_of: string;
   source: string;
@@ -73,8 +77,8 @@ export interface InfoSnapshot {
   pair: string;
   sendable: false;
   mid_rate: number;
-  week_high: number;
-  week_low: number;
+  mid_week_high: number;
+  mid_week_low: number;
   trend: string;
   as_of: string;
   source: string;
@@ -196,6 +200,11 @@ export class RatesService {
     const mid = await this.getMid(from, to);
     const customer = await this.getCustomerRate(from, to);
     const week = await this.getWeekRange(from, to);
+    // Today's rate can be newer than the stored history, so the range always includes it. Each
+    // range is labelled by rate: the customer's (what Nuvio pays out) and the mid-market one.
+    const midHigh = Math.max(week.high, mid.rate);
+    const midLow = Math.min(week.low, mid.rate);
+    const marginBp = FX_MARGIN_BP[pair] ?? 0;
     return {
       corridor: "AE-IN",
       pair,
@@ -203,8 +212,10 @@ export class RatesService {
       customer_rate: customer.rate,
       mid_rate: mid.rate,
       fx_margin_pct: customer.fxMarginPct,
-      week_high: week.high,
-      week_low: week.low,
+      customer_week_high: applyMargin(midHigh, marginBp),
+      customer_week_low: applyMargin(midLow, marginBp),
+      mid_week_high: midHigh,
+      mid_week_low: midLow,
       trend: describeTrend(week.changePct),
       as_of: mid.asOf,
       source:
@@ -251,8 +262,8 @@ export class RatesService {
       pair: `${from}/${to}`,
       sendable: false,
       mid_rate: mid,
-      week_high: Math.max(mid, ...week),
-      week_low: Math.min(mid, ...week),
+      mid_week_high: Math.max(mid, ...week),
+      mid_week_low: Math.min(mid, ...week),
       trend: describeCrossTrend(from, to, changePct),
       as_of: latest !== undefined ? anchor.asOf : `${this.latestDay(from, to)}T00:00:00.000Z`,
       source:

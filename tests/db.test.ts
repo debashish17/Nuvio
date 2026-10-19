@@ -201,4 +201,44 @@ describe("seed dates", () => {
     expect(since(dubaiMonthStart(now))).toBe(1_650_000);
     expect(since(dubaiDayStart)).toBe(expectedDailyUsed);
   });
+
+  // The live run on 19 Oct said "upload by 17 October": the hold was pinned to the 10th, so its
+  // deadline went stale from the 18th of every month. Judging runs 9-20 November.
+  it.each(Array.from({ length: 30 }, (_, i) => i + 1))(
+    "on %i November: deadline ahead, nothing future-dated, within the daily cap",
+    (day) => {
+      const now = new Date(Date.UTC(2026, 10, day, 8, 0)); // 12:00 in Dubai
+      seed(db, now);
+      const today = now.toISOString().slice(0, 10);
+      const rows = db
+        .prepare("SELECT created_at, send_amount_minor AS amount, hold_rfi_json FROM transfers")
+        .all() as { created_at: string; amount: number; hold_rfi_json: string | null }[];
+
+      expect(rows.every((r) => r.created_at <= now.toISOString())).toBe(true);
+      const rfi = JSON.parse(rows.find((r) => r.hold_rfi_json)?.hold_rfi_json ?? "{}");
+      expect(rfi.deadline >= today, `deadline ${rfi.deadline} on ${today}`).toBe(true);
+
+      // Dates as Dubai sees them (UTC+4), as limits and the ledger do.
+      const dubaiDate = (iso: string) =>
+        new Date(Date.parse(iso) + 4 * 3_600_000).toISOString().slice(0, 10);
+      const thisMonth = rows.filter((r) => dubaiDate(r.created_at).startsWith("2026-11"));
+      expect(thisMonth.reduce((s, r) => s + r.amount, 0)).toBe(1_650_000);
+      if (day >= 3) {
+        const byDay = new Map<string, number>();
+        for (const r of thisMonth) {
+          const d = dubaiDate(r.created_at);
+          byDay.set(d, (byDay.get(d) ?? 0) + r.amount);
+        }
+        for (const [d, sum] of byDay) {
+          expect(sum, d).toBeLessThanOrEqual(VERIFIED_TIER.dailyMinor);
+        }
+      }
+      if (day >= 14) {
+        const days = thisMonth
+          .map((r) => Number(dubaiDate(r.created_at).slice(8, 10)))
+          .sort((a, b) => a - b);
+        expect(days).toEqual([13, 10, 9, 7, 5].map((ago) => day - ago));
+      }
+    },
+  );
 });

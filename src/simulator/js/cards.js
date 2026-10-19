@@ -272,7 +272,10 @@ export function rateCard(d) {
     <div class="mini"><span class="fig">${esc(fmt.anyRate(d.mid_rate))}</span><span>${esc(t)} for 1 ${esc(f)}</span></div>
     ${kv([
       ["Trend", esc(d.trend)],
-      ["Week high / low", `${esc(fmt.anyRate(d.week_high))} / ${esc(fmt.anyRate(d.week_low))}`],
+      [
+        "Week high / low",
+        `${esc(fmt.anyRate(d.mid_week_high))} / ${esc(fmt.anyRate(d.mid_week_low))}`,
+      ],
     ])}
     <p class="foot">${esc(d.note)} ${esc(d.source)}</p></article>`);
   }
@@ -282,7 +285,10 @@ export function rateCard(d) {
     ${kv([
       ["Mid-market", esc(fmt.rate(d.mid_rate))],
       ["Trend", esc(d.trend)],
-      ["Week high / low", `${esc(fmt.rate(d.week_high))} / ${esc(fmt.rate(d.week_low))}`],
+      [
+        "Nuvio rate this week",
+        `${esc(fmt.rate(d.customer_week_low))} to ${esc(fmt.rate(d.customer_week_high))}`,
+      ],
     ])}
     <p class="foot">${esc(d.source)}</p></article>`);
 }

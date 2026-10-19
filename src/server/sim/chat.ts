@@ -56,7 +56,13 @@ export interface ChatReply {
   tool_calls: ToolCallSummary[];
   exchanges: Exchange[];
   model: string;
-  usage: { input_tokens: number; output_tokens: number };
+  /** Tokens across the turn's model calls; cache fields appear when prompt caching applied. */
+  usage: {
+    input_tokens: number;
+    output_tokens: number;
+    cache_read_tokens?: number;
+    cache_write_tokens?: number;
+  };
   error?: { code: string; message: string };
   /** "scripted" when no language model is configured (see scripted.ts). */
   mode?: "scripted" | "live";
@@ -96,6 +102,38 @@ const AWAITING_USER = {
       "Nothing was done. Read the confirmation back to the user word for word, then wait for their reply. Use the token only after they clearly agree.",
   },
 };
+
+/**
+ * Prompt caching. Every call resends the system prompt and the 14 tool specs (about 9k of the 13k
+ * input tokens) plus the conversation so far. Cache points after the system prompt, after the tool
+ * list and at the end of the conversation let Bedrock bill what it has seen in the last few minutes
+ * at the cache-read price (Nova 2 Lite: a quarter of the input price; writes cost nothing). The
+ * stored history never holds a cache point; they are added to each request.
+ */
+const CACHE_POINT = { cachePoint: { type: "default" as const } };
+
+/** A Bedrock refusal of the cache points themselves (a model or field that doesn't support them). */
+function isCacheRejection(err: unknown): boolean {
+  return err instanceof Error && err.name === "ValidationException" && /cache/i.test(err.message);
+}
+
+/**
+ * The messages to send, with a cache point after the user's newest words: the newest user message
+ * that has text. Never inside a tool result, which Nova rejects ("extraneous key [cachePoint]",
+ * live 2026-10-19); later rounds of the same turn still reuse everything up to that point.
+ */
+function withCachePoint(messages: Message[]): Message[] {
+  let i = messages.length - 1;
+  while (i >= 0) {
+    const m = messages[i];
+    if (m?.role === "user" && m.content?.some((b) => b.text !== undefined)) break;
+    i--;
+  }
+  const target = messages[i];
+  if (!target) return messages;
+  const marked = { ...target, content: [...(target.content ?? []), CACHE_POINT] };
+  return [...messages.slice(0, i), marked, ...messages.slice(i + 1)];
+}
 
 const MSG = {
   budget: "The demo has used today's assistant allowance. Please try again tomorrow.",
@@ -179,8 +217,18 @@ export class ChatService {
   private readonly maxConversations: number;
   private readonly maxMessages: number;
   private readonly now: () => number;
+  /** Off for good once Bedrock rejects cache points, so a turn never fails because of caching. */
+  private promptCache = true;
+  /**
+   * A cache point after the tool list. Nova rejects it ("extraneous key [cachePoint]", live
+   * 2026-10-19; AWS documents Nova caching for system and messages only), so it starts off there.
+   */
+  private cacheTools: boolean;
+  /** A cache point in the conversation; dropped alone if Bedrock rejects it. */
+  private cacheMessages = true;
 
   constructor(private readonly opts: ChatOptions) {
+    this.cacheTools = !/nova/i.test(opts.modelId);
     this.maxToolRounds = opts.maxToolRounds ?? 6;
     this.maxTokens = opts.maxTokens ?? 600;
     this.ttlMs = opts.ttlMs ?? 30 * 60_000;
@@ -235,7 +283,7 @@ export class ChatService {
 
     const exchanges: Exchange[] = [];
     const toolCalls: ToolCallSummary[] = [];
-    const usage = { input_tokens: 0, output_tokens: 0 };
+    const usage: ChatReply["usage"] = { input_tokens: 0, output_tokens: 0 };
     const reply = (r: string, error?: ChatReply["error"]): ChatReply => {
       convo.updatedAt = this.now();
       this.trim(convo);
@@ -265,15 +313,32 @@ export class ChatService {
           message: "Daily Bedrock call limit reached.",
         });
       }
+      const history = compactHistory(convo.messages);
+      const request = (cache: boolean): ConverseCommandInput => ({
+        modelId: this.opts.modelId,
+        system: cache
+          ? [{ text: this.opts.systemPrompt }, CACHE_POINT]
+          : [{ text: this.opts.systemPrompt }],
+        messages: cache && this.cacheMessages ? withCachePoint(history) : history,
+        toolConfig: { tools: cache && this.cacheTools ? [...tools, CACHE_POINT] : tools },
+        inferenceConfig: { maxTokens: this.maxTokens, temperature: 0.2 },
+      });
       let out: ConverseCommandOutput;
       try {
-        out = await this.opts.converse({
-          modelId: this.opts.modelId,
-          system: [{ text: this.opts.systemPrompt }],
-          messages: compactHistory(convo.messages),
-          toolConfig: { tools },
-          inferenceConfig: { maxTokens: this.maxTokens, temperature: 0.2 },
-        });
+        try {
+          out = await this.opts.converse(request(this.promptCache));
+        } catch (err) {
+          if (!this.promptCache || !isCacheRejection(err)) throw err;
+          // Drop only what Bedrock objected to: the tool-list point, or all of them.
+          const where = errMessage(err);
+          if (this.cacheTools && /toolConfig/i.test(where)) this.cacheTools = false;
+          else if (this.cacheMessages && /#\/messages/i.test(where)) this.cacheMessages = false;
+          else this.promptCache = false;
+          console.warn(
+            `sim: Bedrock rejected prompt cache points (${errMessage(err)}); sending without them`,
+          );
+          out = await this.opts.converse(request(this.promptCache));
+        }
       } catch (err) {
         const code = err instanceof Error ? err.name : "BedrockError";
         console.error(`sim: Bedrock ${code}: ${errMessage(err)}`);
@@ -281,6 +346,10 @@ export class ChatService {
       }
       usage.input_tokens += out.usage?.inputTokens ?? 0;
       usage.output_tokens += out.usage?.outputTokens ?? 0;
+      const read = out.usage?.cacheReadInputTokens ?? 0;
+      const write = out.usage?.cacheWriteInputTokens ?? 0;
+      if (read) usage.cache_read_tokens = (usage.cache_read_tokens ?? 0) + read;
+      if (write) usage.cache_write_tokens = (usage.cache_write_tokens ?? 0) + write;
 
       const message = out.output && "message" in out.output ? out.output.message : undefined;
       const content: ContentBlock[] = message?.content ?? [];

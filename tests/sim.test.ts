@@ -114,6 +114,7 @@ async function start(
     accessCode?: string | undefined;
     devCode?: string | undefined;
     budget?: number;
+    modelId?: string;
   } = {},
 ) {
   const card = new MockCard();
@@ -131,7 +132,7 @@ async function start(
   const chat = new ChatService({
     relay,
     converse: opts.converse ?? scripted([]).fn,
-    modelId: "test-model",
+    modelId: opts.modelId ?? "test-model",
     systemPrompt: SYSTEM_PROMPT,
     budget,
   });
@@ -260,7 +261,8 @@ describe("POST /sim/chat", () => {
     expect(panel).toMatch(/ct_[A-Za-z0-9_-]{5}…/);
     expect(panel).not.toContain(String(prepareResult?.confirmation_token));
     expect(bedrock.seen[0]?.system?.[0]).toEqual({ text: SYSTEM_PROMPT });
-    expect(bedrock.seen[0]?.toolConfig?.tools).toHaveLength(14);
+    // 14 tool specs, then the prompt-cache point.
+    expect(bedrock.seen[0]?.toolConfig?.tools?.filter((t) => t.toolSpec)).toHaveLength(14);
     expect(card.charges).toHaveLength(0);
 
     const second = await sim(app).chat("Yes", first.body.conversation_id);
@@ -547,6 +549,141 @@ describe("consent guard", () => {
     await sim(app).chat("Yes", first.body.conversation_id);
     expect(core.ledger.track(USER_ID, "NUV-240120")).toMatchObject({ status: "CANCELLED" });
     expect(card.refunds).toHaveLength(1);
+  });
+});
+
+describe("prompt caching", () => {
+  // Every Converse call resends about 13k tokens, mostly the system prompt and the 14 tool specs.
+  // Cache points let Bedrock bill that stable prefix at the cache-read price.
+  const isMarker = (b: unknown) =>
+    typeof b === "object" && b !== null && "cachePoint" in b && b.cachePoint !== undefined;
+
+  it("marks the system prompt, the tool list and the conversation so far; history stays clean", async () => {
+    const bedrock = scripted([
+      toolUse("get_rate", {}),
+      say("About 25.99."),
+      say("You're welcome."),
+    ]);
+    const { app } = await start({ converse: bedrock.fn });
+    const first = await sim(app).chat("What's the rate?");
+    await sim(app).chat("Thanks", first.body.conversation_id);
+
+    for (const sent of bedrock.seen) {
+      expect(sent.system?.at(-1), "system").toEqual({ cachePoint: { type: "default" } });
+      expect(sent.toolConfig?.tools?.at(-1), "tools").toEqual({ cachePoint: { type: "default" } });
+      // One marker in the conversation, after the user's newest words. Never inside a tool
+      // result: Nova rejects that (live, 2026-10-19).
+      const messages = sent.messages ?? [];
+      const marked = messages.filter((m) => (m.content ?? []).some(isMarker));
+      expect(marked).toHaveLength(1);
+      const userText = messages.filter((m) => m.role === "user" && m.content?.some((b) => b.text));
+      expect(marked[0]).toBe(userText.at(-1));
+      expect(isMarker(marked[0]?.content?.at(-1))).toBe(true);
+      expect(marked[0]?.content?.some((b) => b.toolResult)).toBe(false);
+    }
+  });
+
+  it("Nova: cache points on the system prompt and the conversation, none on the tool list", async () => {
+    // Nova 2 Lite rejects one on the tools (live, 2026-10-19): "extraneous key [cachePoint]".
+    const bedrock = scripted([say("Hi.")]);
+    const { app } = await start({ converse: bedrock.fn, modelId: "us.amazon.nova-2-lite-v1:0" });
+    await sim(app).chat("Hi");
+    const sent = bedrock.seen[0];
+    expect(sent?.system?.at(-1)).toEqual({ cachePoint: { type: "default" } });
+    expect(sent?.toolConfig?.tools?.some(isMarker)).toBe(false);
+    expect(isMarker(sent?.messages?.at(-1)?.content?.at(-1))).toBe(true);
+  });
+
+  it("if Bedrock rejects the conversation cache point, drops only that one", async () => {
+    const rejected = Object.assign(
+      new Error(
+        "The model returned the following errors: Malformed input request: #/messages/2/content/0: extraneous key [cachePoint] is not permitted",
+      ),
+      { name: "ValidationException" },
+    );
+    const bedrock = scripted([
+      () => {
+        throw rejected;
+      },
+      say("Hello."),
+    ]);
+    const { app } = await start({ converse: bedrock.fn, modelId: "us.amazon.nova-2-lite-v1:0" });
+    expect((await sim(app).chat("Hi")).body.reply).toBe("Hello.");
+    const retry = bedrock.seen[1];
+    expect(retry?.system?.some(isMarker)).toBe(true);
+    expect((retry?.messages ?? []).flatMap((m) => m.content ?? []).some(isMarker)).toBe(false);
+  });
+
+  it("if Bedrock rejects the tool-list cache point, drops only that one", async () => {
+    const rejected = Object.assign(
+      new Error(
+        "The model returned the following errors: Malformed input request: #/toolConfig/tools/13: extraneous key [cachePoint] is not permitted",
+      ),
+      { name: "ValidationException" },
+    );
+    const bedrock = scripted([
+      () => {
+        throw rejected;
+      },
+      say("Hello."),
+      say("Hello again."),
+    ]);
+    const { app } = await start({ converse: bedrock.fn });
+    const first = await sim(app).chat("Hi");
+    expect(first.body.reply).toBe("Hello.");
+    await sim(app).chat("Hi", first.body.conversation_id);
+    for (const sent of bedrock.seen.slice(1)) {
+      expect(sent.toolConfig?.tools?.some(isMarker)).toBe(false);
+      expect(sent.system?.some(isMarker)).toBe(true);
+      expect(isMarker(sent.messages?.at(-1)?.content?.at(-1))).toBe(true);
+    }
+  });
+
+  it("if the model rejects cache points altogether, retries without them and stops sending them", async () => {
+    const rejected = Object.assign(
+      new Error("This model does not support prompt caching (cachePoint)."),
+      {
+        name: "ValidationException",
+      },
+    );
+    const bedrock = scripted([
+      () => {
+        throw rejected;
+      },
+      say("Hello."),
+      say("Hello again."),
+    ]);
+    const { app } = await start({ converse: bedrock.fn });
+    const first = await sim(app).chat("Hi");
+    expect(first.body.reply).toBe("Hello.");
+    expect(first.body.error).toBeUndefined();
+    await sim(app).chat("Hi", first.body.conversation_id);
+    for (const sent of bedrock.seen.slice(1)) {
+      expect(sent.system?.some(isMarker)).toBe(false);
+      expect(sent.toolConfig?.tools?.some(isMarker)).toBe(false);
+      expect((sent.messages ?? []).flatMap((m) => m.content ?? []).some(isMarker)).toBe(false);
+    }
+  });
+
+  it("reports cache reads and writes in the turn's usage", async () => {
+    const cached = {
+      ...say("Hi."),
+      usage: {
+        inputTokens: 120,
+        outputTokens: 5,
+        totalTokens: 9325,
+        cacheReadInputTokens: 9000,
+        cacheWriteInputTokens: 200,
+      },
+    } as ConverseCommandOutput;
+    const { app } = await start({ converse: scripted([cached]).fn });
+    const res = await sim(app).chat("Hi");
+    expect(res.body.usage).toEqual({
+      input_tokens: 120,
+      output_tokens: 5,
+      cache_read_tokens: 9000,
+      cache_write_tokens: 200,
+    });
   });
 });
 

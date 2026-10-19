@@ -317,7 +317,7 @@ function pairCalls(r) {
 function renderProtoTurn(n, r, { head, paired }) {
   protoHeading(
     `Turn ${n}`,
-    `${r.model?.split(".").slice(-1)[0] ?? ""} · ${r.usage?.input_tokens ?? 0}/${r.usage?.output_tokens ?? 0} tok`,
+    `${r.model?.split(".").slice(-1)[0] ?? ""} · ${r.usage?.input_tokens ?? 0}/${r.usage?.output_tokens ?? 0} tok${r.usage?.cache_read_tokens ? ` · ${r.usage.cache_read_tokens} cached` : ""}`,
   );
   exchangeRows(head);
   const rows = new Map();

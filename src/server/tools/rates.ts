@@ -25,8 +25,16 @@ const getRateOutput = {
     .describe("Nuvio's rate: rupees per dirham the recipient gets (AED/INR only)"),
   mid_rate: z.number().describe("Mid-market rate"),
   fx_margin_pct: z.number().optional(),
-  week_high: z.number(),
-  week_low: z.number(),
+  customer_week_high: z
+    .number()
+    .optional()
+    .describe("Highest Nuvio rate this week, rupees per dirham (AED/INR only)"),
+  customer_week_low: z
+    .number()
+    .optional()
+    .describe("Lowest Nuvio rate this week, rupees per dirham (AED/INR only)"),
+  mid_week_high: z.number().describe("Highest mid-market rate this week"),
+  mid_week_low: z.number().describe("Lowest mid-market rate this week"),
   trend: z.string(),
   as_of: z.string(),
   source: z.string(),
