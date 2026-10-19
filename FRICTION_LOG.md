@@ -258,3 +258,14 @@ Severity: **blocker** (stopped work), **major** (cost more than 30 min or needed
 - **Severity:** minor (the turn failed until the fallback, then worked uncached)
 - **Workaround:** For Nova, cache points go only on the system prompt and the user's newest text message. On a `ValidationException` that mentions a cache point, the call is retried without the rejected point, and that point is not sent again (`src/server/sim/chat.ts`).
 - **Suggestion:** Bedrock: list, per model, which Converse fields accept `cachePoint`, and accept and ignore one on fields that can't be cached rather than rejecting the request. The JSON-pointer error is good: it made the cause findable in one try.
+
+### 2026-10-20 · Amazon CloudWatch metrics through AWS CLI v2 (`get-metric-statistics`, AWS/Bedrock and AWS/Polly) · Times come back in local time, and Polly's latency is in microseconds
+- **Task:** Measuring the cost and health of a live simulator run without Cost Explorer, from the free Bedrock and Polly metrics.
+- **Steps:** `aws cloudwatch get-metric-statistics` with `--start-time` and `--end-time` in UTC (`...Z`), for `Invocations`, the token counts and `InvocationLatency` (AWS/Bedrock), and `RequestCharacters` and `ResponseLatency` (AWS/Polly, `Operation=SynthesizeSpeech`).
+- **Expected:** Datapoints in UTC, as the request was, and latencies in the same unit for both services.
+- **Actual:**
+  1. The CLI printed every `Timestamp` in the laptop's zone (`2026-10-20T00:05:00+05:30`), so a run at 18:35 UTC looked like the next day until the offset was read.
+  2. Polly's `ResponseLatency` is in `Microseconds`, while Bedrock's `InvocationLatency` is in milliseconds. A 47 ms Polly call read as 47 seconds until the `Unit` field was printed.
+- **Severity:** minor (no wrong result once noticed; two misreadings on the way)
+- **Workaround:** Read the offset on each timestamp (or set the CLI's `cli_timestamp_format` to `wire`, which prints timestamps as the service sent them), and print `Unit` with every statistic.
+- **Suggestion:** AWS CLI: say in the `get-metric-statistics` help that the default `iso8601` format converts to local time. CloudWatch: use one latency unit across services, or put the unit beside each metric in the console's metric picker.
