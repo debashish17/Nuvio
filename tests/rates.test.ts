@@ -5,6 +5,8 @@ import {
   deriveAedInr,
   RatesService,
 } from "../src/core/rates.js";
+import { applyMargin } from "../src/core/money.js";
+import { FX_MARGIN_BP } from "../src/core/policy.js";
 import type { Db } from "../src/db/connection.js";
 import {
   failingFetch,
@@ -132,6 +134,31 @@ describe("RatesService", () => {
     });
   });
 
+  it("labels the week range by rate: Nuvio's customer rate and the mid-market rate", async () => {
+    // Review of the live run (2026-10-19): an unlabelled mid-market range read as Nuvio's rate.
+    const rates = service(failingFetch());
+    const snap = await rates.snapshot("AED", "INR");
+    const bp = FX_MARGIN_BP["AED/INR"] ?? 0;
+    expect(snap).toMatchObject({
+      mid_week_high: 26.2301,
+      mid_week_low: 26.0694,
+      customer_week_high: applyMargin(26.2301, bp),
+      customer_week_low: applyMargin(26.0694, bp),
+    });
+    expect(snap).not.toHaveProperty("week_high");
+    expect(snap).not.toHaveProperty("week_low");
+  });
+
+  it("the week range always contains today's rate, live or cached", async () => {
+    // A live mid newer than the stored history used to fall outside the week's high and low.
+    const rates = service(liveFetch());
+    const snap = (await rates.snapshot("AED", "INR")) as unknown as Record<string, number>;
+    expect(snap.mid_week_low).toBeLessThanOrEqual(snap.mid_rate as number);
+    expect(snap.mid_rate).toBeLessThanOrEqual(snap.mid_week_high as number);
+    expect(snap.customer_week_low).toBeLessThanOrEqual(snap.customer_rate as number);
+    expect(snap.customer_rate).toBeLessThanOrEqual(snap.customer_week_high as number);
+  });
+
   it("describes the trend from the sender's side", () => {
     expect(describeTrend(0.6)).toBe("rupee weakened 0.6% this week");
     expect(describeTrend(-0.4)).toBe("rupee strengthened 0.4% this week");
@@ -163,6 +190,11 @@ describe("rates for other currencies (information only)", () => {
       note: "Mid-market rate for information only. Nuvio sends money from AED to INR only.",
     });
     expect(snap).not.toHaveProperty("customer_rate");
+    // Information-only pairs have only mid-market rates, and say so in the field names.
+    expect(snap).toHaveProperty("mid_week_high");
+    expect(snap).toHaveProperty("mid_week_low");
+    expect(snap).not.toHaveProperty("week_high");
+    expect(snap).not.toHaveProperty("customer_week_high");
   });
 
   it("derives the Gulf currencies from their US dollar pegs", async () => {

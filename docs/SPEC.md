@@ -80,12 +80,13 @@ Twelve tools, one domain, two money-moving tools behind one gate. The `descripti
 
 ```json
 // 1 get_rate (from, to: ISO 4217 codes, default AED and INR)
-in:  { "from": "AED", "to": "INR" }
+in:  { "from": "AED", "to": "INR" }   // each week range is named for its rate, and includes today's
 out: { "corridor": "AE-IN", "pair": "AED/INR", "sendable": true, "customer_rate": 23.21, "mid_rate": 23.42,
-       "fx_margin_pct": 0.9, "week_high": 23.55, "week_low": 23.10, "trend": "rupee weakened 0.6% this week",
+       "fx_margin_pct": 0.9, "customer_week_high": 23.338, "customer_week_low": 22.8921,
+       "mid_week_high": 23.55, "mid_week_low": 23.10, "trend": "rupee weakened 0.6% this week",
        "as_of": "2026-10-01T09:15:00Z", "source": "ECB via Frankfurter, cached" }
 in:  { "from": "AED", "to": "PHP" }       // any other pair: mid-market, information only
-out: { "pair": "AED/PHP", "sendable": false, "mid_rate": 15.63, "week_high": 15.70, "week_low": 15.52,
+out: { "pair": "AED/PHP", "sendable": false, "mid_rate": 15.63, "mid_week_high": 15.70, "mid_week_low": 15.52,
        "trend": "Philippine Peso weakened 0.4% against the UAE Dirham this week", "as_of": "2026-10-01T09:15:00Z",
        "source": "ECB via Frankfurter, cached; AED at the US dollar peg",
        "note": "Mid-market rate for information only. Nuvio sends money from AED to INR only." }
