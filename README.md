@@ -13,6 +13,15 @@ Built for the **Alexa+ track** of [Build, Ship, Shape: Amazon Developer Hackatho
 
 > **The simulator is the demo.** Amazon's Alexa+ toolchain (the Alexa+ CLI, MCP Toolkit and web simulator) is not available to hackathon participants, so this repo ships its own web simulator that stands in for Alexa+ and calls the MCP server exactly as Alexa+ would. Judges can run everything locally with **nothing but Node**: no AWS account, no API key (see [Run it locally with no AWS account](#run-it-locally-with-no-aws-account)).
 
+## Built for Alexa+
+
+| Alexa+ track | In this repo |
+| --- | --- |
+| An Alexa+ add-on | The MCP server: 14 tools on `POST /mcp`, with tool descriptions and replies written to be spoken |
+| MCP Apps (track resource) | [`ui://nuvio-remit/transfer`](#mcp-apps-view): the transfer on screen, from quote to read-back with countdown, code entry and live receipt |
+| Agent Skills (track resource) | [`skills/nuvio-remit/SKILL.md`](#agent-skill): the consent flow the server enforces, for any agent |
+| Testing on Alexa+ | [The simulator](#the-simulator) stands in for Alexa+ and calls the server over real JSON-RPC |
+
 ## What it does
 
 One remittance provider's own Alexa+ add-on. A customer in Dubai can ask for today's rate, compare payout methods, send money to a saved recipient, track it to the UTR, cancel before payout, check limits, and set a rate alert — by voice.
