@@ -1,17 +1,17 @@
-# Acme Remit for Alexa+ — Build Spec & Hackathon Plan
+# Nuvio Remit for Alexa+ — Build Spec & Hackathon Plan
 
 Oct 1, 2026 · @Debashish · updated Oct 4, 2026 after the hackathon FAQ
 
 ## Locked decisions
 
-Acme Remit is one remittance provider's own Alexa+ add-on: a self-hosted MCP server (spec 2025-11-25, Streamable HTTP) over a simulated ledger, entered in the Alexa+ track plus the AWS Builder and Open Source mini challenges. Its own web simulator, which stands in for Alexa+, is the demo, and the whole experience runs locally with nothing but Node.
+Nuvio Remit is one remittance provider's own Alexa+ add-on: a self-hosted MCP server (spec 2025-11-25, Streamable HTTP) over a simulated ledger, entered in the Alexa+ track plus the AWS Builder and Open Source mini challenges. Its own web simulator, which stands in for Alexa+, is the demo, and the whole experience runs locally with nothing but Node.
 
 | Decision | Choice | Why |
 | --- | --- | --- |
-| Framing | Single provider ("Acme Remit", name TBD), UAE–India corridor, AED to INR | Matches how every real Alexa+ add-on works; one board rate, one backend, no scraping |
-| Rates | Live mid-market from Frankfurter (ECB), cached 15 min; ECB publishes no AED, so AED/INR is USD/INR divided by the CBUAE peg of 3.6725 AED per USD, plus a simulated Acme FX margin; seeded fallback table. Customer sees "our rate" plus the guaranteed receive amount, Wise-style mid shown only in `compare_options`. Every other currency ECB publishes, plus the dollar-pegged Gulf currencies (AED, SAR, QAR, OMR, BHD), can be quoted by `get_rate` as a mid-market rate for information; sending stays AED to INR. | Realistic pricing model, one dependency, demo never breaks |
+| Framing | Single provider ("Nuvio Remit"), UAE–India corridor, AED to INR | Matches how every real Alexa+ add-on works; one board rate, one backend, no scraping |
+| Rates | Live mid-market from Frankfurter (ECB), cached 15 min; ECB publishes no AED, so AED/INR is USD/INR divided by the CBUAE peg of 3.6725 AED per USD, plus a simulated Nuvio FX margin; seeded fallback table. Customer sees "our rate" plus the guaranteed receive amount, Wise-style mid shown only in `compare_options`. Every other currency ECB publishes, plus the dollar-pegged Gulf currencies (AED, SAR, QAR, OMR, BHD), can be quoted by `get_rate` as a mid-market rate for information; sending stays AED to INR. | Realistic pricing model, one dependency, demo never breaks |
 | Payout methods | Bank deposit via IMPS (instant), UPI ID (instant), cash pickup (MTSS caps). No economy/express tiers | What UAE exchange houses actually offer; cash pickup brings a real regulatory cap into the demo |
-| Competitor data | None live. `compare_options` shows the mid rate, Acme's rate, and a labelled illustrative typical-bank rate derived from the same mid | Honest, defensible, still reads well aloud |
+| Competitor data | None live. `compare_options` shows the mid rate, Nuvio's rate, and a labelled illustrative typical-bank rate derived from the same mid | Honest, defensible, still reads well aloud |
 | Funding | Saved debit card, charged at confirm; funds received instantly in the mock | Voice cannot take card details; matches per-transfer funding norms |
 | Money movement | Simulated ledger only; every write labelled "no real funds move" | Expected for the event; the tool contract is production-shaped |
 | User and KYC tier | One demo user (Priya, Dubai), tier "Verified" (Emirates ID done, no income proof), Bearer token auth | Tier explains the limits; account linking (OAuth 2.1 + PKCE) documented as the production path |
@@ -23,7 +23,7 @@ Acme Remit is one remittance provider's own Alexa+ add-on: a self-hosted MCP ser
 | Cross-session context | `get_pending` returns what is waiting since the last conversation (open quotes, transfers under review with their RFI, rate alerts that fired, the last transfer per recipient). The assistant calls it at the start of each conversation and resolves "send the usual to Mum" from it | Conversations aren't stored; the ledger is the memory, so context carries across sessions without keeping transcripts |
 | Stack | TypeScript, Express, `@modelcontextprotocol/sdk`, SQLite (better-sqlite3); in the simulator Amazon Bedrock (Nova 2 Lite) or any OpenAI-compatible model, or scripted mode without one; Amazon Polly for the voice when AWS credentials exist; optional hosting on AWS App Runner us-east-1 | Lowest ops for a solo build; runs with no account; Bedrock and Polly satisfy AWS Builder |
 
-Open item: the product name. Placeholder `acme-remit` in code until chosen.
+Product name: Nuvio Remit, chosen Oct 19, 2026.
 
 ## Architecture
 
@@ -51,7 +51,7 @@ Requests flow top to bottom; the only outbound network call is the cached rate f
 | The assistant: Amazon Bedrock or any OpenAI-compatible model | yes | scripted mode when none is configured (real tools, fixed script) |
 | AWS App Runner deployment (optional) | yes |  |
 | Mid-market exchange rates | yes, Frankfurter |  |
-| Acme FX margin, fees, payout methods, KYC tier limits |  | yes |
+| Nuvio FX margin, fees, payout methods, KYC tier limits |  | yes |
 | Card funding, ledger, screening, payout partner, UTRs |  | yes |
 | SMS delivery of the step-up code (shown on a simulated phone) |  | yes |
 
@@ -88,7 +88,7 @@ in:  { "from": "AED", "to": "PHP" }       // any other pair: mid-market, informa
 out: { "pair": "AED/PHP", "sendable": false, "mid_rate": 15.63, "week_high": 15.70, "week_low": 15.52,
        "trend": "Philippine Peso weakened 0.4% against the UAE Dirham this week", "as_of": "2026-10-01T09:15:00Z",
        "source": "ECB via Frankfurter, cached; AED at the US dollar peg",
-       "note": "Mid-market rate for information only. Acme sends money from AED to INR only." }
+       "note": "Mid-market rate for information only. Nuvio sends money from AED to INR only." }
 refused: CURRENCY_NOT_SUPPORTED { currency, supported[] } · RATE_UNAVAILABLE { pair }
 
 // 2 compare_options
@@ -112,7 +112,7 @@ out: { "recipients": [ { "id": "ben_01", "nickname": "Mum", "full_name": "Sunita
 in:  { "query": "Mum" }
 out: { "match": { "id": "ben_01", "nickname": "Mum", "full_name": "Sunita Nair", "payout_method": "bank_deposit" } }
   or { "ambiguous": true, "candidates": [ { "id": "ben_02", "nickname": "Rahul", "relationship": "brother" }, { "id": "ben_03", "nickname": "Rahul (college)", "relationship": "friend" } ] }
-  or { "not_found": true, "hint": "Recipients are added and name-verified in the Acme app." }
+  or { "not_found": true, "hint": "Recipients are added and name-verified in the Nuvio app." }
 
 // 5 quote_transfer
 in:  { "send_amount": 2000, "send_currency": "AED", "beneficiary_id": "ben_01", "payout_method": "bank_deposit", "purpose": "family_maintenance" }
@@ -121,9 +121,9 @@ out: { "quote_id": "q_7f3a", "rate_locked_until": "...+30m", "fee": 15, "locked_
        "funding": "debit card ending 8812",
        "warnings": [ { "code": "NEAR_MONTHLY_LIMIT", "remaining_after": 1500, "currency": "AED", "resets_on": "2026-11-01" } ] }
   or { "refused": { "code": "MONTHLY_LIMIT", "limit": 20000, "used": 18500, "requested": 3000, "currency": "AED", "resets_on": "2026-11-01",
-       "resolution": "Send up to 1,500 dirhams now, or raise your limit by adding salary proof in the Acme app." } }
+       "resolution": "Send up to 1,500 dirhams now, or raise your limit by adding salary proof in the Nuvio app." } }
   or { "refused": { "code": "PURPOSE_REQUIRES_DOCUMENTS", "purpose": "property_purchase",
-       "resolution": "Property payments need a sale agreement uploaded in the Acme app before sending." } }
+       "resolution": "Property payments need a sale agreement uploaded in the Nuvio app before sending." } }
 
 // 6 prepare_transfer
 in:  { "quote_id": "q_7f3a" }
@@ -134,10 +134,10 @@ out: { "confirmation_token": "ct_9b2e...", "expires_at": "...+5m",
 in:  { "confirmation_token": "ct_9b2e..." }
 out: { "refused": { "code": "STEP_UP_REQUIRED", "method": "sms_otp", "sent_to": "phone ending 4471",
        "expires_at": "...+5m", "attempts_left": 3, "resolution": "Nothing has been sent yet. A 6-digit code was texted ..." } }
-     // SMS to the registered phone: "Acme: 482913 is your code to send 2,000 dirhams to Mum. ..."
+     // SMS to the registered phone: "Nuvio: 482913 is your code to send 2,000 dirhams to Mum. ..."
 in:  { "confirmation_token": "ct_9b2e...", "otp": "482913" }
 out: { "transfer_ref": "NUV-240133", "status": "SCREENING", "receive_amount": 46070, "eta": "within minutes",
-       "receipt": "Receipt and FIRA will be available in the Acme app once paid out." }
+       "receipt": "Receipt and FIRA will be available in the Nuvio app once paid out." }
   or { "refused": { "code": "OTP_INVALID" (attempts_left) | "OTP_EXPIRED" | "OTP_LOCKED" | "TOKEN_EXPIRED" | "TOKEN_USED"
        | "TOKEN_UNKNOWN" | "LIMIT_EXCEEDED" | "CARD_DECLINED", "resolution": "..." } }
 
@@ -147,7 +147,7 @@ out: { "transfer_ref": "NUV-240133", "status": "PAID_OUT", "recipient": "Mum", "
        "timeline": [ { "status": "FUNDS_RECEIVED", "at": "..." }, { "status": "SCREENING", "at": "..." },
                      { "status": "SENT_TO_PARTNER", "at": "..." }, { "status": "PAID_OUT", "at": "..." } ] }
   or { "status": "ON_HOLD", "customer_label": "Under review",
-       "action_required": { "type": "RFI", "document": "updated Emirates ID", "how": "upload in the Acme app", "deadline": "2026-10-05" } }
+       "action_required": { "type": "RFI", "document": "updated Emirates ID", "how": "upload in the Nuvio app", "deadline": "2026-10-05" } }
   or { "status": "RETURNED", "reason": "recipient bank reported a name mismatch", "refund": { "amount": 475, "currency": "AED",
        "note": "refunded at the rate on the return date; fee not refunded", "eta": "2-7 working days" } }
 
@@ -173,7 +173,7 @@ in:  { "transfer_ref": "NUV-240120", "cancel_token": "cx_41d7..." }
 out: { "transfer_ref": "NUV-240120", "status": "CANCELLED", "refund": { "amount": 5000, "currency": "AED", "to": "card ending 8812", "eta": "2-7 working days" },
        "limits_now": { "monthly": { "remaining": 6500 } } }
   or { "refused": { "code": "CANCEL_WINDOW_CLOSED", "status": "SENT_TO_PARTNER",
-       "resolution": "This transfer has already been sent. A recall needs the recipient's consent; Acme support can request one from the app." } }
+       "resolution": "This transfer has already been sent. A recall needs the recipient's consent; Nuvio support can request one from the app." } }
   or { "refused": { "code": "TOKEN_EXPIRED" | "TOKEN_USED" | "TOKEN_UNKNOWN", "resolution": "..." } }
 
 // 12 set_rate_alert
@@ -195,11 +195,11 @@ out: { "open_quotes": [ { "quote_id": "q_7f3a", "recipient": "Mum", "beneficiary
          "receive_amount": 51598.09, "status": "open", "rate_locked_until": "..." } ],
        "under_review": [ { "transfer_ref": "NUV-240120", "recipient": "My NRE account", "send_amount": 5000,
          "sent_on": "2026-10-01", "customer_label": "Under review", "cancellable": true,
-         "action_required": { "type": "document", "document": "updated Emirates ID", "how": "upload in the Acme app", "deadline": "2026-10-08" } } ],
+         "action_required": { "type": "document", "document": "updated Emirates ID", "how": "upload in the Nuvio app", "deadline": "2026-10-08" } } ],
        "fired_alerts": [ { "alert_id": "al_01", "pair": "AED/INR", "target": 26.5, "direction": "above", "fired_at": "..." } ],
        "last_by_recipient": [ { "beneficiary_id": "ben_01", "recipient": "Mum", "full_name": "Sunita Nair", "transfer_ref": "NUV-240116",
          "send_amount": 2000, "payout_method": "bank_deposit", "purpose": "family_maintenance", "date": "2026-10-01", "customer_label": "Paid out" } ],
-       "summary": "Your 5,000 dirham transfer to My NRE account is under review: upload updated Emirates ID in the Acme app by 8 October." }
+       "summary": "Your 5,000 dirham transfer to My NRE account is under review: upload updated Emirates ID in the Nuvio app by 8 October." }
 ```
 
 Every refusal is structured (`code`, numbers, `resolution`) so the model can explain it well. No tool ever returns a bare string error.
@@ -420,7 +420,7 @@ Tokens are bound to the authenticated caller (the principal from the Bearer chec
 | `pending.test.ts` | under-review transfer with its RFI and a plain-words summary · last transfer per recipient skips cancelled and returned · open quotes until used or expired · alerts fired in the last 7 days · "nothing needs your attention" · major units on the wire |
 | `scripted.test.ts` | every demo beat end to end over `POST /mcp` with no model, including the step-up code · free text outside the script gets a notice · a code read as words · "send the usual to Mum" from `get_pending` · the mode decision |
 | `openai.test.ts` | Converse ⇄ chat-completions translation · the tool loop through `/mcp` on an OpenAI-compatible endpoint · provider errors never leak the key |
-| `skill.test.ts` | `skills/acme-remit/SKILL.md` follows the Agent Skills format · the safe flow stays in order · every tool is referenced |
+| `skill.test.ts` | `skills/nuvio-remit/SKILL.md` follows the Agent Skills format · the safe flow stays in order · every tool is referenced |
 | `protocol.test.ts` | `initialize` negotiates `2025-11-25` · `tools/list` returns 14 tools with JSON schemas · `tools/call` on each tool returns structured content · missing Bearer returns 401 · legacy GET /sse is not served |
 
 Run `npm test` in CI (GitHub Actions on every push) so the green badge is in the README on submission day.
@@ -451,7 +451,7 @@ The simulator stands in for Alexa+ and is the official demo path: Amazon's Alexa
 | Phone (text messages) | The customer's simulated phone: step-up codes arrive as an SMS toast, which the user reads out |
 | Demo player | Play demo shows the demo beats one at a time (from `/sim/tools`, the same list scripted mode follows); Play all runs them in a row, each after the last reply is spoken |
 | Mode banner | In scripted mode, says no language model is configured and how to add one; flashes when a line falls outside the script |
-| Banner | "Simulated ledger: no real funds move. Mid-market rates are live; Acme pricing is simulated." always visible |
+| Banner | "Simulated ledger: no real funds move. Mid-market rates are live; Nuvio pricing is simulated." always visible |
 | Dev controls (hidden behind `?dev=1`) | Fire alert, advance ticker, release the held transfer, reset seed: used only while recording |
 
 Serve the simulator as static files from the same Express app at `/`, so `pnpm dev` (or one App Runner service, if hosted) serves both.
@@ -460,11 +460,11 @@ Serve the simulator as static files from the same Express app at `/`, so `pnpm d
 
 ## MCP Apps view
 
-MCP Apps (the official MCP extension `io.modelcontextprotocol/ui`, stable spec 2026-01-26) lets a tool name an interactive HTML view that the host renders in a sandboxed iframe next to the conversation. It is one of the Alexa+ track's linked resources, with Agent Skills. Acme Remit ships one view, `ui://acme-remit/transfer`: a screen for the transfer the assistant is talking through, with one job the voice channel does badly, which is taking the step-up code.
+MCP Apps (the official MCP extension `io.modelcontextprotocol/ui`, stable spec 2026-01-26) lets a tool name an interactive HTML view that the host renders in a sandboxed iframe next to the conversation. It is one of the Alexa+ track's linked resources, with Agent Skills. Nuvio Remit ships one view, `ui://nuvio-remit/transfer`: a screen for the transfer the assistant is talking through, with one job the voice channel does badly, which is taking the step-up code.
 
-**Resource.** `ui://acme-remit/transfer`, mimeType `text/html;profile=mcp-app`, one self-contained HTML document (script and styles inline) built from `src/ui/transfer/` with the official SDK's `App` class (`@modelcontextprotocol/ext-apps` 1.x). `_meta.ui`: an empty `csp` (the view makes no network requests; it talks only to its host over `postMessage`), no extra permissions, `prefersBorder: true`. It follows the host's theme and style variables when the host sends them.
+**Resource.** `ui://nuvio-remit/transfer`, mimeType `text/html;profile=mcp-app`, one self-contained HTML document (script and styles inline) built from `src/ui/transfer/` with the official SDK's `App` class (`@modelcontextprotocol/ext-apps` 1.x). `_meta.ui`: an empty `csp` (the view makes no network requests; it talks only to its host over `postMessage`), no extra permissions, `prefersBorder: true`. It follows the host's theme and style variables when the host sends them.
 
-**Linked tools.** `quote_transfer`, `prepare_transfer`, `confirm_transfer` and `track_transfer` carry `_meta.ui.resourceUri: "ui://acme-remit/transfer"`, with the default visibility (model and app). Their descriptions, input schemas and results do not change, and a host without MCP Apps ignores `_meta`, so every other client sees the same 14 tools. The transport is stateless, so `tools/list` never sees the client's capabilities; the server always declares the link.
+**Linked tools.** `quote_transfer`, `prepare_transfer`, `confirm_transfer` and `track_transfer` carry `_meta.ui.resourceUri: "ui://nuvio-remit/transfer"`, with the default visibility (model and app). Their descriptions, input schemas and results do not change, and a host without MCP Apps ignores `_meta`, so every other client sees the same 14 tools. The transport is stateless, so `tools/list` never sees the client's capabilities; the server always declares the link.
 
 | Tool result the view receives | The view shows | What the view can do |
 | --- | --- | --- |
@@ -555,7 +555,7 @@ The planned Alexa+ CLI attempt was dropped: the FAQ says participants can't get 
 - [x] Scripted mode (`SIM_MODE`): the demo runs through the real tools with no language model and no AWS account
 - [x] Pluggable live model (`LLM_PROVIDER=bedrock|openai_compatible`)
 - [x] Cross-session context: `get_pending` (tool 14), with the prompt opening each conversation from it
-- [x] Agent Skill `skills/acme-remit/SKILL.md`; README run-locally section and threat model; `FEEDBACK.md` filled
+- [x] Agent Skill `skills/nuvio-remit/SKILL.md`; README run-locally section and threat model; `FEEDBACK.md` filled
 - [x] `mcp-confirm-gate` package for the Open Source mini challenge, published to npm as 0.1.0 on Oct 3, 2026 by the owner
 
 * Milestone: on a clean clone with a `.env` of only `MCP_BEARER_TOKEN` and `SIM_ACCESS_CODE` and no AWS credentials, `pnpm install && pnpm db:seed && pnpm dev` starts, the simulator opens, and Play demo runs every beat end to end through real `POST /mcp` calls
@@ -563,12 +563,12 @@ The planned Alexa+ CLI attempt was dropped: the FAQ says participants can't get 
 
 **Phase 4b · Oct 3–8 · MCP Apps view**
 
-- [x] `ui://acme-remit/transfer` resource and the `_meta.ui` link on the four transfer tools (see "MCP Apps view")
+- [x] `ui://nuvio-remit/transfer` resource and the `_meta.ui` link on the four transfer tools (see "MCP Apps view")
 - [x] The view: quote, read-back with countdown, code entry, live receipt, built with the official `App` class into one HTML file
 - [x] The simulator as an MCP Apps host: `resources/read` through the relay, sandboxed frame, `AppBridge`, `/sim/app-tool` and `/sim/app-context`
 - [x] README: the view, and how to open it in another MCP Apps host
 
-* Milestone: in the simulator, with nothing but Node, sending money shows `ui://acme-remit/transfer` moving from quote to read-back with countdown to code entry to live receipt; a code typed in the view reaches the server through the host's `tools/call`, never through the model; `pnpm test`, `pnpm lint` and `pnpm typecheck` are green
+* Milestone: in the simulator, with nothing but Node, sending money shows `ui://nuvio-remit/transfer` moving from quote to read-back with countdown to code entry to live receipt; a code typed in the view reaches the server through the host's `tools/call`, never through the model; `pnpm test`, `pnpm lint` and `pnpm typecheck` are green
 * Status: done. CI covers the view's state logic, the resource, the tool links and the simulator's host routes, and a Playwright test in Chrome (`e2e/`) runs Play all and the code typed into the view through to Paid out. The browser flow was also checked by hand in the official reference host: read-back, Confirm, code entry with a wrong code then the right one, the live receipt reaching Paid out, and the assistant told
 
 **Phase 5 · Oct 19–21 · Video and write-ups**
@@ -607,15 +607,15 @@ Built around the step-up moment, the strongest 15 seconds we have: the assistant
 
 | Time | Beat | On screen |
 | --- | --- | --- |
-| 0:00–0:12 | "Voice is the weakest way to approve a payment. Acme Remit is an Alexa+ add-on, a self-hosted MCP server, that makes it safe enough to send money home from the UAE to India." | The simulator, with the banner "Simulated ledger: no real funds move" in view |
+| 0:00–0:12 | "Voice is the weakest way to approve a payment. Nuvio Remit is an Alexa+ add-on, a self-hosted MCP server, that makes it safe enough to send money home from the UAE to India." | The simulator, with the banner "Simulated ledger: no real funds move" in view |
 | 0:12–0:22 | "Hi, anything I should know?" → "Welcome back. Your 5,000 dirham transfer to your NRE account is under review: upload an updated Emirates ID by 9 October." Context from the ledger, across sessions | Protocol panel shows `get_pending` |
-| 0:22–0:30 | "What's the rupee at today?" → Acme's rate and the weekly trend | Rate card; protocol panel shows `get_rate` |
+| 0:22–0:30 | "What's the rupee at today?" → Nuvio's rate and the weekly trend | Rate card; protocol panel shows `get_rate` |
 | 0:30–1:14 | **The send.** "Send 2,000 dirhams to Mum." → the read-back with recipient, bank, purpose, fee, card and guaranteed rupees, then "Shall I go ahead?" → "Yes." → "I've texted a code to your phone ending 4471." → the simulated phone shows the SMS (code, amount, recipient) → the user reads "four eight two nine one three" → confirmed, the orb gathers into a check mark, the receipt appears. Voice-over: "The code never reaches the model. Only someone holding the phone can approve, and the code works for this one payment." | Read-back card with its 5-minute countdown, then the "Check your phone" card and the phone toast; protocol panel: `prepare_transfer` (token masked), `confirm_transfer` "code texted · nothing sent yet", `confirm_transfer` with the masked code "moves money"; ledger strip updates |
 | 1:14–1:24 | "Send her another three thousand." → refused: monthly limit, 1,500 left until 1 November, add salary proof to raise it | Refusal card and JSON in the panel: the server enforced it, not the model |
 | 1:24–1:32 | "Send 500 to Rahul." → "Do you mean your brother Rahul Nair, or your friend Rahul Menon?" | Choose card from `resolve_beneficiary` |
 | 1:32–1:48 | "Where's Mum's money?" → paid out, with the bank reference (UTR). "And the one to my NRE account?" → under review, upload an updated Emirates ID in the app, and no reason given | Receipt steps reach Paid out (dev control "Advance ticker" before the take); status card with the action needed |
 | 1:48–2:04 | "Cancel the one to my NRE account." → the preview: 5,000 dirhams back to the card → "Yes." → cancelled, 6,500 of the monthly limit free again | Cancel card, then the cancelled card; `cancel_transfer` twice in the panel; ledger strip updates |
-| 2:04–2:12 | "Does the LRS limit apply to me?" → no, it covers money sent out of India, from Acme's own help content, not the model's memory | Help card from `get_help`, with its source and disclaimer |
+| 2:04–2:12 | "Does the LRS limit apply to me?" → no, it covers money sent out of India, from Nuvio's own help content, not the model's memory | Help card from `get_help`, with its source and disclaimer |
 | 2:12–2:20 | "Tell me when the dirham hits 26.5." → alert set, then fired | Alert card, then the toast (dev control "Fire rate alert") |
 | 2:20–2:38 | How it's built: 14 MCP tools over Streamable HTTP, the step-up and token tests passing, the conversation evals, CI green, runs with nothing but Node (scripted mode), Bedrock (Nova 2 Lite) or any OpenAI-compatible model for the live assistant, Polly for the voice, and the Agent Skill | Editor, terminal and the README's threat model |
 | 2:38–2:45 | "The ledger module is the only thing between this and a licensed exchange house's backend." | README real-vs-simulated table |

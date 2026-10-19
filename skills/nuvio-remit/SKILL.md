@@ -1,23 +1,23 @@
 ---
-name: acme-remit
-description: Send money from the UAE to India safely through the Acme Remit MCP server, and check rates, recipients, transfer status, limits and pending items. Use when a user wants to send, quote, track or cancel a remittance with Acme Remit, or when building or testing an MCP client against this server. Teaches the consent flow the server enforces (resolve, quote, prepare, read back, wait for a yes, confirm with the texted code, track) so money never moves without the user.
+name: nuvio-remit
+description: Send money from the UAE to India safely through the Nuvio Remit MCP server, and check rates, recipients, transfer status, limits and pending items. Use when a user wants to send, quote, track or cancel a remittance with Nuvio Remit, or when building or testing an MCP client against this server. Teaches the consent flow the server enforces (resolve, quote, prepare, read back, wait for a yes, confirm with the texted code, track) so money never moves without the user.
 license: MIT
 metadata:
-  server: acme-remit
+  server: nuvio-remit
   mcp-protocol: "2025-11-25"
   transport: streamable-http
 ---
 
-# Acme Remit: the safe send flow
+# Nuvio Remit: the safe send flow
 
-Acme Remit is an MCP server for one remittance provider (UAE to India, AED to INR, simulated ledger). Two tools move money, `confirm_transfer` and `cancel_transfer`, and both refuse unless the user has heard a read-back and agreed. Follow this flow exactly; the server enforces most of it, and the rest is your job.
+Nuvio Remit is an MCP server for one remittance provider (UAE to India, AED to INR, simulated ledger). Two tools move money, `confirm_transfer` and `cancel_transfer`, and both refuse unless the user has heard a read-back and agreed. Follow this flow exactly; the server enforces most of it, and the rest is your job.
 
 ## Connect
 
 - Endpoint: `POST $MCP_URL` (default `http://127.0.0.1:3000/mcp`), Streamable HTTP, stateless (no session id).
 - Headers: `Authorization: Bearer $MCP_BEARER_TOKEN`, `Content-Type: application/json`, `Accept: application/json, text/event-stream`, `MCP-Protocol-Version: 2025-11-25`.
 - JSON-RPC methods: `initialize`, `tools/list`, `tools/call`. Results are in `result.structuredContent`.
-- Helper: `node skills/acme-remit/scripts/mcp-call.mjs <tool> '<json arguments>'` prints the structured result. Run the server locally with `pnpm dev`; no AWS account is needed.
+- Helper: `node skills/nuvio-remit/scripts/mcp-call.mjs <tool> '<json arguments>'` prints the structured result. Run the server locally with `pnpm dev`; no AWS account is needed.
 
 All 14 tools are listed in [references/tools.md](references/tools.md).
 
@@ -30,7 +30,7 @@ Call `get_pending` once. If its `summary` mentions something (a transfer under r
 1. **Resolve the recipient.** `resolve_beneficiary { query }` with the user's words ("Mum", "my brother", "my NRE account").
    - `match`: use `match.id`.
    - `ambiguous` with `candidates`: ask which one, naming each by relationship and full name. Never pick.
-   - `not_found`: say the recipient must be added in the Acme app. You cannot add or edit recipients.
+   - `not_found`: say the recipient must be added in the Nuvio app. You cannot add or edit recipients.
 2. **Quote.** `quote_transfer { beneficiary_id, send_amount }` (AED; the fee is taken out of it). Rate and receive amount are held 30 minutes. If the user only asked what it would cost, tell them the receive amount, fee and arrival time, mention any `warnings`, and ask whether to send.
 3. **Prepare.** `prepare_transfer { quote_id }` returns `confirmation_token`, `expires_at` (5 minutes) and `read_back`.
 4. **Read back, word for word.** Show or say `read_back` exactly as written, including its final question. Then **stop and wait** for the user's next message.

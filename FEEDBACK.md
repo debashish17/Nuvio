@@ -16,7 +16,7 @@ One section per tool, API, SDK or service used, as the Devpost submission requir
 
 ## MCP Apps SDK (`@modelcontextprotocol/ext-apps` 1.7.5)
 
-- **Used for:** the `ui://acme-remit/transfer` view, server and host side. On the server: `registerAppResource` and `registerAppTool` link the four transfer tools to the view. In the view: the `App` class (tool input and result handlers, `callServerTool` for the step-up code, `sendMessage`, `updateModelContext`, auto-resize, host theme). In the simulator: `AppBridge` with `PostMessageTransport`, which makes the page an MCP Apps host.
+- **Used for:** the `ui://nuvio-remit/transfer` view, server and host side. On the server: `registerAppResource` and `registerAppTool` link the four transfer tools to the view. In the view: the `App` class (tool input and result handlers, `callServerTool` for the step-up code, `sendMessage`, `updateModelContext`, auto-resize, host theme). In the simulator: `AppBridge` with `PostMessageTransport`, which makes the page an MCP Apps host.
 - **Worked well:** The protocol is small and does what we needed. The best part is a path for the step-up code that skips the model entirely: the view calls `confirm_transfer` through the host, so the code is never in the conversation. The server helpers are thin wrappers that only set `_meta`, so adding the view changed no tool schema. The `AppBridge` host side took about 100 lines to wire up, with a null client and our own routing.
 - **Needs work:**
   - `latest` (2.x) needs the split MCP SDK v2, and pnpm installed it on SDK 1.31 without an error. We pinned 1.7.5.

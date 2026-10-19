@@ -1,9 +1,11 @@
-# Acme Remit for Alexa+
+# Nuvio Remit for Alexa+
 
-[![CI](https://github.com/debashish17/acme-remit/actions/workflows/ci.yml/badge.svg)](https://github.com/debashish17/acme-remit/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/github/license/debashish17/acme-remit)](LICENSE)
+[![CI](https://github.com/debashish17/Nuvio/actions/workflows/ci.yml/badge.svg)](https://github.com/debashish17/Nuvio/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/github/license/debashish17/Nuvio)](LICENSE)
 
-> **Simulated ledger — no real funds move.** Mid-market exchange rates are live (ECB via Frankfurter, cached; AED/INR derived from USD/INR at the 3.6725 AED/USD peg); Acme pricing, limits, card funding, screening and payout are simulated.
+Formerly 'Acme Remit' (working name).
+
+> **Simulated ledger — no real funds move.** Mid-market exchange rates are live (ECB via Frankfurter, cached; AED/INR derived from USD/INR at the 3.6725 AED/USD peg); Nuvio pricing, limits, card funding, screening and payout are simulated.
 
 A self-hosted [MCP](https://modelcontextprotocol.io) server (spec 2025-11-25, Streamable HTTP) that lets Alexa+ handle UAE→India remittances safely, plus a web simulator that stands in for Alexa+.
 
@@ -32,7 +34,7 @@ Phase 4b (MCP Apps view), on top of Phases 1–4. All 14 tools work over `POST /
 
 | Tool | Does | Moves money |
 | --- | --- | --- |
-| `get_rate` | Acme's AED→INR rate, mid-market rate, 7-day trend; any other ECB or dollar-pegged pair for information | |
+| `get_rate` | Nuvio's AED→INR rate, mid-market rate, 7-day trend; any other ECB or dollar-pegged pair for information | |
 | `compare_options` | Receive amount by bank deposit, UPI and cash pickup, against a typical bank | |
 | `list_beneficiaries` / `resolve_beneficiary` | Saved recipients; find one by name, nickname or relationship | |
 | `quote_transfer` | Fee, locked rate, guaranteed receive amount, limit and purpose checks; held 30 min | |
@@ -42,7 +44,7 @@ Phase 4b (MCP Apps view), on top of Phases 1–4. All 14 tools work over `POST /
 | `cancel_transfer` | Preview with a cancel token, then cancel and refund before payout | **yes** |
 | `check_limits` | Tier, remaining limits, plain-words explanation of any refusal | |
 | `set_rate_alert` | Tell the user when the rate reaches a target | |
-| `get_help` | Acme's own answers (demo text, pending compliance review): documents, steps, recipients, NRE/NRO, LRS, tax, refunds, safety | |
+| `get_help` | Nuvio's own answers (demo text, pending compliance review): documents, steps, recipients, NRE/NRO, LRS, tax, refunds, safety | |
 | `get_pending` | What's waiting since last time: open quotes, transfers under review with their RFI, fired alerts, and the last transfer per recipient ("the usual") | |
 
 ## Run
@@ -52,8 +54,8 @@ Phase 4b (MCP Apps view), on top of Phases 1–4. All 14 tools work over `POST /
 You need Node 22 and pnpm (`corepack enable` gives you pnpm). Nothing else: no AWS account, no API key, no Docker.
 
 ```bash
-git clone https://github.com/debashish17/acme-remit.git
-cd acme-remit
+git clone https://github.com/debashish17/Nuvio.git
+cd Nuvio
 pnpm install
 # a .env with just two lines (any values; the token must be at least 16 characters)
 printf 'MCP_BEARER_TOKEN=local-demo-token-1234567890\nSIM_ACCESS_CODE=demo-code\n' > .env
@@ -161,17 +163,17 @@ The service runs exactly one instance (min = max = 1) because the SQLite ledger 
 | The assistant: Amazon Bedrock or any OpenAI-compatible model | yes | scripted mode when none is configured (real tools, fixed script) |
 | AWS App Runner deployment (optional) | yes | |
 | Mid-market exchange rates | yes (Frankfurter) | |
-| Acme FX margin, fees, payout methods, KYC tier limits | | yes |
+| Nuvio FX margin, fees, payout methods, KYC tier limits | | yes |
 | Card funding, ledger, screening, payout partner, UTRs | | yes |
 | SMS delivery of the step-up code (shown on a simulated phone) | | yes |
 
 ## Agent Skill
 
-[`skills/acme-remit/SKILL.md`](skills/acme-remit/SKILL.md) is an [Agent Skill](https://agentskills.io) that teaches a coding agent to use this server safely: start with `get_pending`, resolve the recipient, quote, prepare, read back word for word, wait for the user's yes, confirm, ask for the texted code, confirm with it, track. It includes a reference for all 14 tools and a small script that calls a tool over Streamable HTTP.
+[`skills/nuvio-remit/SKILL.md`](skills/nuvio-remit/SKILL.md) is an [Agent Skill](https://agentskills.io) that teaches a coding agent to use this server safely: start with `get_pending`, resolve the recipient, quote, prepare, read back word for word, wait for the user's yes, confirm, ask for the texted code, confirm with it, track. It includes a reference for all 14 tools and a small script that calls a tool over Streamable HTTP.
 
 ## MCP Apps view
 
-[MCP Apps](https://github.com/modelcontextprotocol/ext-apps) is the official MCP extension that lets a tool show an interactive view next to the conversation. This server ships one, `ui://acme-remit/transfer`, linked from `quote_transfer`, `prepare_transfer`, `confirm_transfer` and `track_transfer` through `_meta.ui.resourceUri`. Hosts without MCP Apps ignore the link and see the same 14 tools. The view moves through four stages:
+[MCP Apps](https://github.com/modelcontextprotocol/ext-apps) is the official MCP extension that lets a tool show an interactive view next to the conversation. This server ships one, `ui://nuvio-remit/transfer`, linked from `quote_transfer`, `prepare_transfer`, `confirm_transfer` and `track_transfer` through `_meta.ui.resourceUri`. Hosts without MCP Apps ignore the link and see the same 14 tools. The view moves through four stages:
 
 1. **Quote:** what the recipient receives, the fee and the rate-lock countdown.
 2. **Read-back:** the token's 5-minute countdown. **Confirm** and **Not now** send "Yes." or "No." into the conversation, so consent stays with the assistant.
@@ -201,12 +203,12 @@ How the simulator hosts it:
 
 ```json
 {
-  "inputs": [{ "id": "acme-token", "type": "promptString", "description": "MCP_BEARER_TOKEN from .env", "password": true }],
+  "inputs": [{ "id": "nuvio-token", "type": "promptString", "description": "MCP_BEARER_TOKEN from .env", "password": true }],
   "servers": {
-    "acme-remit": {
+    "nuvio-remit": {
       "type": "http",
       "url": "http://127.0.0.1:3000/mcp",
-      "headers": { "Authorization": "Bearer ${input:acme-token}" }
+      "headers": { "Authorization": "Bearer ${input:nuvio-token}" }
     }
   }
 }
