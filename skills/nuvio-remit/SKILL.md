@@ -40,7 +40,7 @@ Call `get_pending` once. If its `summary` mentions something (a transfer under r
    - `OTP_INVALID` (`attempts_left`): ask them to read the code again.
    - `OTP_EXPIRED`: offer to send a new code (call step 5 again).
    - `OTP_LOCKED`: nothing was sent; start again from step 2.
-8. **Track.** `track_transfer { transfer_ref }` (or `{ latest: true }`). Describe progress with `customer_label`, never the raw `status`. Paid out includes a bank reference (`utr`). Under review includes `action_required`; say only that, never a reason.
+8. **Track.** `track_transfer { transfer_ref }` (or `{ latest: true }`). Describe progress with `customer_label`, never the raw `status`. Paid out includes a bank reference (`utr`); aloud, give only its last four characters ("the bank reference ends in 5990"), because the full reference is in the Nuvio app. Under review includes `action_required`; say only that, never a reason.
 
 ## Cancelling
 

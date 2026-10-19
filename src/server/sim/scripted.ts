@@ -470,7 +470,7 @@ function quoteLine(nickname: string, q: Json): string {
 function statusLine(t: Json): string {
   if (t.refused) return String((t.refused as Json).resolution);
   if (t.status === "PAID_OUT")
-    return `It has been paid out. The bank reference is ${String(t.utr)}.`;
+    return `It has been paid out. The bank reference ends in ${String(t.utr).slice(-4)}; the full reference is in the Nuvio app.`;
   if (t.status === "ON_HOLD") {
     const a = t.action_required as Json | undefined;
     return a
