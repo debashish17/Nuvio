@@ -335,19 +335,19 @@ export class ScriptedChat implements ChatEngine {
       return this.sendTo(who, parseAmount(m[1] ?? ""), convo, tool);
     }
 
-    m = /cancel (?:transfer )?(acm-\d+)/.exec(t);
+    m = /cancel (?:transfer )?(nuv-\d+)/.exec(t);
     if (m) return this.preview((m[1] ?? "").toUpperCase(), convo, tool);
     m = /cancel (?:the one|the transfer|my transfer) to (.+)$/.exec(t);
     if (m) {
       const ref = await this.newestRef(m[1] ?? "", convo, tool);
-      return ref.startsWith("ACM-") ? this.preview(ref, convo, tool) : ref;
+      return ref.startsWith("NUV-") ? this.preview(ref, convo, tool) : ref;
     }
 
     m =
       /where(?:s| is) (.+?)s money/.exec(t) ?? /^(?:and )?(?:what about )?the one to (.+)$/.exec(t);
     if (m) {
       const ref = await this.newestRef(m[1] ?? "", convo, tool);
-      return ref.startsWith("ACM-")
+      return ref.startsWith("NUV-")
         ? statusLine(await tool("track_transfer", { transfer_ref: ref }))
         : ref;
     }

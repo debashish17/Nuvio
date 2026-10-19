@@ -89,12 +89,12 @@ describe("ConfirmationGate", () => {
   });
 
   it("a cancel token only works as a cancel token, and carries the transfer ref", () => {
-    const cx = gate.issue({ kind: "cancel", ref: "ACM-240120" }, CALLER);
+    const cx = gate.issue({ kind: "cancel", ref: "NUV-240120" }, CALLER);
     expect(cx.token).toMatch(/^cx_[A-Za-z0-9_-]{43}$/);
     expect(gate.consume(cx.token, CALLER, "transfer")).toMatchObject({
       refused: { code: "TOKEN_UNKNOWN" },
     });
-    expect(gate.consume(cx.token, CALLER, "cancel")).toEqual({ kind: "cancel", ref: "ACM-240120" });
+    expect(gate.consume(cx.token, CALLER, "cancel")).toEqual({ kind: "cancel", ref: "NUV-240120" });
 
     const ct = gate.issue(transfer(), CALLER);
     expect(gate.consume(ct.token, CALLER, "cancel")).toMatchObject({

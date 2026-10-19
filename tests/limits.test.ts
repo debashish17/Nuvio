@@ -131,7 +131,7 @@ describe("LimitService.check", () => {
   });
 
   it("cancelled and returned transfers do not count", () => {
-    db.prepare("UPDATE transfers SET status = 'CANCELLED' WHERE ref = 'ACM-240120'").run();
+    db.prepare("UPDATE transfers SET status = 'CANCELLED' WHERE ref = 'NUV-240120'").run();
     // 16,500 used this month, less the 5,000 under review now cancelled.
     expect(new LimitService(db, testClock()).remaining(USER_ID).monthly.used_minor).toBe(1_150_000);
   });

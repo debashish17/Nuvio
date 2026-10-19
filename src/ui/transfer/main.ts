@@ -1,5 +1,5 @@
 /**
- * ui://acme-remit/transfer: the MCP Apps view for a transfer (SPEC "MCP Apps view"). It draws
+ * ui://nuvio-remit/transfer: the MCP Apps view for a transfer (SPEC "MCP Apps view"). It draws
  * whatever the host last sent (quote, read-back, code entry, receipt) and does two things itself:
  * it sends the step-up code to confirm_transfer through the host, so the code never passes through
  * the model, and it polls track_transfer while a receipt can still change. Confirm and Not now are
@@ -35,7 +35,7 @@ import {
 const POLL_MS = 3000;
 const POLL_FOR_MS = 10 * 60_000;
 
-const app = new App({ name: "acme-remit-transfer", version: "1.0.0" }, {}, { autoResize: true });
+const app = new App({ name: "nuvio-remit-transfer", version: "1.0.0" }, {}, { autoResize: true });
 const root = document.getElementById("app") as HTMLElement;
 const live = document.getElementById("live") as HTMLElement;
 

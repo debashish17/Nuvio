@@ -541,10 +541,10 @@ export class LedgerService {
   private nextRef(): string {
     const row = this.db
       .prepare(
-        "SELECT MAX(CAST(substr(ref, 5) AS INTEGER)) AS n FROM transfers WHERE ref LIKE 'ACM-%'",
+        "SELECT MAX(CAST(substr(ref, 5) AS INTEGER)) AS n FROM transfers WHERE ref LIKE 'NUV-%'",
       )
       .get() as { n: number | null };
-    return `ACM-${(row.n ?? 240100) + 1}`;
+    return `NUV-${(row.n ?? 240100) + 1}`;
   }
 
   private addEvent(ref: string, status: TransferStatus, at: string) {

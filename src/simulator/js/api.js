@@ -1,8 +1,8 @@
 /* Talks to this server's /sim/* and /dev/* routes. The page never holds the MCP Bearer secret:
    the server-side relay makes the real POST /mcp calls and returns the exchanges. */
 
-const SIM_KEY = "acme.simCode";
-const DEV_KEY = "acme.devCode";
+const SIM_KEY = "nuvio.simCode";
+const DEV_KEY = "nuvio.devCode";
 
 const store = {
   get(k) {

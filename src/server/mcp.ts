@@ -7,7 +7,7 @@ import type { Core } from "../core/index.js";
 import { registerAppResources } from "./apps.js";
 import { registerTools } from "./tools/index.js";
 
-export const SERVER_NAME = "acme-remit";
+export const SERVER_NAME = "nuvio-remit";
 /** From package.json at build time (the bundler inlines it), so the two cannot drift. */
 export const SERVER_VERSION: string = pkg.version;
 

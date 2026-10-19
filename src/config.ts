@@ -10,7 +10,7 @@ const ConfigSchema = z.object({
   BEDROCK_MODEL_ID: z.string().min(1).default("us.amazon.nova-2-lite-v1:0"),
   AWS_REGION: z.string().min(1).default("us-east-1"),
   RATES_URL: z.url().default("https://api.frankfurter.dev/v1"),
-  DB_PATH: z.string().min(1).default("./data/acme-remit.db"),
+  DB_PATH: z.string().min(1).default("./data/nuvio-remit.db"),
   TICKER_MS: z.coerce.number().int().min(100).default(15000),
   // Simulator and dev controls on a public URL. Unset means disabled (fail closed).
   SIM_ACCESS_CODE: z.string().min(8, "must be at least 8 characters").optional(),

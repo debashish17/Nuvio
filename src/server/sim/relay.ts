@@ -141,7 +141,7 @@ export class McpRelay {
         protocolVersion: this.version,
         // The page renders MCP Apps views (SPEC "MCP Apps view").
         capabilities: { extensions: { [UI_EXTENSION]: { mimeTypes: [UI_MIME] } } },
-        clientInfo: { name: "acme-remit-simulator", version: "1.0.0" },
+        clientInfo: { name: "nuvio-remit-simulator", version: "1.0.0" },
       },
       log,
     )) as { protocolVersion?: string };

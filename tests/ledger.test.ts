@@ -57,7 +57,7 @@ describe("LedgerService.confirm", () => {
     const { quoteId, token } = await prepared("ben_01", 2000);
     const r = ok(core.ledger.confirm(USER_ID, token, CALLER));
     expect(r).toEqual({
-      transfer_ref: "ACM-240121",
+      transfer_ref: "NUV-240121",
       status: "SCREENING",
       customer_label: "Checking details",
       recipient: "Mum",
@@ -73,7 +73,7 @@ describe("LedgerService.confirm", () => {
       .all(r.transfer_ref);
     expect(events).toEqual([{ status: "FUNDS_RECEIVED" }, { status: "SCREENING" }]);
     expect(core.quotes.get(USER_ID, quoteId)?.status).toBe("consumed");
-    expect(card.charges).toEqual([{ userId: USER_ID, amountMinor: 200_000, ref: "ACM-240121" }]);
+    expect(card.charges).toEqual([{ userId: USER_ID, amountMinor: 200_000, ref: "NUV-240121" }]);
   });
 
   it("charges the card exactly once under two concurrent confirms (second refused)", async () => {
@@ -124,10 +124,10 @@ describe("LedgerService.confirm", () => {
       refused: { code: "CARD_DECLINED" },
     });
     expect(count("SELECT COUNT(*) AS n FROM transfers WHERE quote_id = ?", quoteId)).toBe(0);
-    expect(count("SELECT COUNT(*) AS n FROM transfer_events WHERE ref = 'ACM-240121'")).toBe(0);
+    expect(count("SELECT COUNT(*) AS n FROM transfer_events WHERE ref = 'NUV-240121'")).toBe(0);
     expect(core.quotes.get(USER_ID, quoteId)?.status).toBe("prepared");
     decline = false;
-    expect(ok(core.ledger.confirm(USER_ID, token, CALLER)).transfer_ref).toBe("ACM-240121");
+    expect(ok(core.ledger.confirm(USER_ID, token, CALLER)).transfer_ref).toBe("NUV-240121");
   });
 
   it("a superseded token cannot confirm", async () => {
@@ -176,7 +176,7 @@ describe("LedgerService.tick", () => {
   it("does not advance ON_HOLD (or any other terminal state)", () => {
     clock.advance(24 * 3_600_000);
     expect(core.ledger.tick()).toEqual([]);
-    expect(ok(core.ledger.track(USER_ID, "ACM-240120")).status).toBe("ON_HOLD");
+    expect(ok(core.ledger.track(USER_ID, "NUV-240120")).status).toBe("ON_HOLD");
   });
 });
 
@@ -186,7 +186,7 @@ describe("LedgerService.cancel", () => {
     ok(core.ledger.confirm(USER_ID, (await prepared("ben_01", 2000)).token, CALLER));
     expect(core.limits.remaining(USER_ID).monthly.used_minor).toBe(1_850_000);
 
-    const preview = ok(core.ledger.cancelPreview(USER_ID, "ACM-240120", CALLER));
+    const preview = ok(core.ledger.cancelPreview(USER_ID, "NUV-240120", CALLER));
     expect(preview).toMatchObject({
       status: "ON_HOLD",
       customer_label: "Under review",
@@ -199,9 +199,9 @@ describe("LedgerService.cancel", () => {
       "Cancel the 5,000 dirham transfer to your NRE account. 5,000 dirhams, including the 15 dirham fee, go back to your card ending 8812 within 2 to 7 working days. Shall I cancel it?",
     );
 
-    const done = ok(core.ledger.cancel(USER_ID, "ACM-240120", preview.cancel_token, CALLER));
+    const done = ok(core.ledger.cancel(USER_ID, "NUV-240120", preview.cancel_token, CALLER));
     expect(done).toEqual({
-      transfer_ref: "ACM-240120",
+      transfer_ref: "NUV-240120",
       status: "CANCELLED",
       customer_label: "Cancelled",
       refund: {
@@ -212,8 +212,8 @@ describe("LedgerService.cancel", () => {
       },
       limits_now: { monthly: { remaining_minor: 650_000 }, daily: { remaining_minor: 800_000 } },
     });
-    expect(card.refunds).toEqual([{ userId: USER_ID, amountMinor: 500_000, ref: "ACM-240120" }]);
-    expect(ok(core.ledger.track(USER_ID, "ACM-240120"))).toMatchObject({
+    expect(card.refunds).toEqual([{ userId: USER_ID, amountMinor: 500_000, ref: "NUV-240120" }]);
+    expect(ok(core.ledger.track(USER_ID, "NUV-240120"))).toMatchObject({
       status: "CANCELLED",
       refund: { amount_minor: 500_000 },
     });
@@ -240,7 +240,7 @@ describe("LedgerService.cancel", () => {
       refused: { code: "CANCEL_WINDOW_CLOSED", status: "SENT_TO_PARTNER" },
     });
     expect(core.ledger.cancellable(ref)).toBe(false);
-    expect(core.ledger.cancelPreview(USER_ID, "ACM-240119", CALLER)).toMatchObject({
+    expect(core.ledger.cancelPreview(USER_ID, "NUV-240119", CALLER)).toMatchObject({
       refused: { code: "CANCEL_WINDOW_CLOSED", status: "PAID_OUT" },
     });
   });
@@ -259,14 +259,14 @@ describe("LedgerService.cancel", () => {
   });
 
   it("cancel preview then execute consumes one cx_ token; reuse is refused", () => {
-    const { cancel_token } = ok(core.ledger.cancelPreview(USER_ID, "ACM-240120", CALLER));
-    ok(core.ledger.cancel(USER_ID, "ACM-240120", cancel_token, CALLER));
-    expect(core.ledger.cancel(USER_ID, "ACM-240120", cancel_token, CALLER)).toMatchObject({
+    const { cancel_token } = ok(core.ledger.cancelPreview(USER_ID, "NUV-240120", CALLER));
+    ok(core.ledger.cancel(USER_ID, "NUV-240120", cancel_token, CALLER));
+    expect(core.ledger.cancel(USER_ID, "NUV-240120", cancel_token, CALLER)).toMatchObject({
       refused: { code: "TOKEN_USED" },
     });
     expect(
       count(
-        "SELECT COUNT(*) AS n FROM confirmations WHERE transfer_ref = 'ACM-240120' AND used_at IS NOT NULL",
+        "SELECT COUNT(*) AS n FROM confirmations WHERE transfer_ref = 'NUV-240120' AND used_at IS NOT NULL",
       ),
     ).toBe(1);
     expect(card.refunds).toHaveLength(1);
@@ -276,29 +276,29 @@ describe("LedgerService.cancel", () => {
     const { transfer_ref: other } = ok(
       core.ledger.confirm(USER_ID, (await prepared("ben_01", 1000)).token, CALLER),
     );
-    const { cancel_token } = ok(core.ledger.cancelPreview(USER_ID, "ACM-240120", CALLER));
+    const { cancel_token } = ok(core.ledger.cancelPreview(USER_ID, "NUV-240120", CALLER));
     expect(core.ledger.cancel(USER_ID, other, cancel_token, CALLER)).toMatchObject({
       refused: { code: "TOKEN_UNKNOWN" },
     });
-    ok(core.ledger.cancel(USER_ID, "ACM-240120", cancel_token, CALLER));
+    ok(core.ledger.cancel(USER_ID, "NUV-240120", cancel_token, CALLER));
   });
 
   it("a confirmation token cannot cancel, and another caller cannot use a cancel token", async () => {
     const { token } = await prepared("ben_01", 1000);
-    expect(core.ledger.cancel(USER_ID, "ACM-240120", token, CALLER)).toMatchObject({
+    expect(core.ledger.cancel(USER_ID, "NUV-240120", token, CALLER)).toMatchObject({
       refused: { code: "TOKEN_UNKNOWN" },
     });
-    const { cancel_token } = ok(core.ledger.cancelPreview(USER_ID, "ACM-240120", CALLER));
+    const { cancel_token } = ok(core.ledger.cancelPreview(USER_ID, "NUV-240120", CALLER));
     expect(
-      core.ledger.cancel(USER_ID, "ACM-240120", cancel_token, "usr_priya:caller-b"),
+      core.ledger.cancel(USER_ID, "NUV-240120", cancel_token, "usr_priya:caller-b"),
     ).toMatchObject({ refused: { code: "TOKEN_UNKNOWN" } });
   });
 
   it("unknown and other users' transfers are not found", () => {
-    expect(core.ledger.cancelPreview(USER_ID, "ACM-999999", CALLER)).toMatchObject({
+    expect(core.ledger.cancelPreview(USER_ID, "NUV-999999", CALLER)).toMatchObject({
       refused: { code: "TRANSFER_NOT_FOUND" },
     });
-    expect(core.ledger.cancelPreview("usr_other", "ACM-240120", CALLER)).toMatchObject({
+    expect(core.ledger.cancelPreview("usr_other", "NUV-240120", CALLER)).toMatchObject({
       refused: { code: "TRANSFER_NOT_FOUND" },
     });
   });
@@ -306,7 +306,7 @@ describe("LedgerService.cancel", () => {
 
 describe("LedgerService.track", () => {
   it("returns 'Under review' and the RFI for ON_HOLD, with no screening reason", () => {
-    const t = ok(core.ledger.track(USER_ID, "ACM-240120"));
+    const t = ok(core.ledger.track(USER_ID, "NUV-240120"));
     expect(t).toMatchObject({
       status: "ON_HOLD",
       customer_label: "Under review",
@@ -324,7 +324,7 @@ describe("LedgerService.track", () => {
   });
 
   it("returns the reason and refund details for RETURNED", () => {
-    expect(ok(core.ledger.track(USER_ID, "ACM-240113"))).toMatchObject({
+    expect(ok(core.ledger.track(USER_ID, "NUV-240113"))).toMatchObject({
       status: "RETURNED",
       reason: "recipient bank reported a name mismatch",
       refund: {
@@ -338,11 +338,11 @@ describe("LedgerService.track", () => {
   });
 
   it("returns the UTR for a seeded PAID_OUT transfer, and the latest when no ref is given", async () => {
-    expect(ok(core.ledger.track(USER_ID, "acm-240116"))).toMatchObject({
+    expect(ok(core.ledger.track(USER_ID, "nuv-240116"))).toMatchObject({
       status: "PAID_OUT",
       utr: "HDFCR52026100200240116",
     });
-    expect(ok(core.ledger.track(USER_ID)).transfer_ref).toBe("ACM-240120");
+    expect(ok(core.ledger.track(USER_ID)).transfer_ref).toBe("NUV-240120");
     const { transfer_ref } = ok(
       core.ledger.confirm(USER_ID, (await prepared("ben_01", 500)).token, CALLER),
     );
@@ -350,8 +350,8 @@ describe("LedgerService.track", () => {
   });
 
   it("not found is a structured refusal", () => {
-    expect(core.ledger.track(USER_ID, "ACM-1")).toMatchObject({
-      refused: { code: "TRANSFER_NOT_FOUND", transfer_ref: "ACM-1" },
+    expect(core.ledger.track(USER_ID, "NUV-1")).toMatchObject({
+      refused: { code: "TRANSFER_NOT_FOUND", transfer_ref: "NUV-1" },
     });
     expect(core.ledger.track("usr_nobody")).toMatchObject({
       refused: { code: "TRANSFER_NOT_FOUND" },
@@ -364,15 +364,15 @@ describe("LedgerService.history", () => {
     const h = core.ledger.history(USER_ID, { months: 3 });
     // Aug: Mum, friend (RETURNED); Sep: Mum, brother; Oct: Mum, brother, NRE x3 (the last ON_HOLD)
     expect(h.transfers.map((t) => t.transfer_ref)).toEqual([
-      "ACM-240120",
-      "ACM-240119",
-      "ACM-240118",
-      "ACM-240117",
-      "ACM-240116",
-      "ACM-240115",
-      "ACM-240114",
-      "ACM-240113",
-      "ACM-240112",
+      "NUV-240120",
+      "NUV-240119",
+      "NUV-240118",
+      "NUV-240117",
+      "NUV-240116",
+      "NUV-240115",
+      "NUV-240114",
+      "NUV-240113",
+      "NUV-240112",
     ]);
     expect(h.totals).toEqual({
       count: 9,
@@ -385,7 +385,7 @@ describe("LedgerService.history", () => {
       monthly: { used_minor: 1_650_000, limit_minor: 2_000_000, resets_on: "2026-11-01" },
       daily: { used_minor: 0, limit_minor: 1_000_000 },
     });
-    expect(h.transfers.find((t) => t.transfer_ref === "ACM-240113")).toMatchObject({
+    expect(h.transfers.find((t) => t.transfer_ref === "NUV-240113")).toMatchObject({
       status: "RETURNED",
       refund_minor: 47_500,
     });
@@ -402,22 +402,22 @@ describe("LedgerService.history", () => {
 
 describe("LedgerService dev controls", () => {
   it("releaseHold moves ON_HOLD back to SCREENING and the ticker carries it to PAID_OUT", () => {
-    expect(core.ledger.releaseHold(USER_ID, "ACM-240120")).toEqual({
-      ref: "ACM-240120",
+    expect(core.ledger.releaseHold(USER_ID, "NUV-240120")).toEqual({
+      ref: "NUV-240120",
       status: "SCREENING",
     });
     clock.advance(STEP);
     core.ledger.tick();
     clock.advance(STEP);
     core.ledger.tick();
-    const t = ok(core.ledger.track(USER_ID, "ACM-240120"));
+    const t = ok(core.ledger.track(USER_ID, "NUV-240120"));
     expect(t.status).toBe("PAID_OUT");
     expect(t.utr).toMatch(/^SBINR5\d{16}$/);
   });
 
   it("releaseHold ignores transfers that are not on hold or not the user's", () => {
-    expect(core.ledger.releaseHold(USER_ID, "ACM-240119")).toBeUndefined();
-    expect(core.ledger.releaseHold("usr_other", "ACM-240120")).toBeUndefined();
+    expect(core.ledger.releaseHold(USER_ID, "NUV-240119")).toBeUndefined();
+    expect(core.ledger.releaseHold("usr_other", "NUV-240120")).toBeUndefined();
   });
 
   it("tick({ force: true }) advances one step without waiting", async () => {

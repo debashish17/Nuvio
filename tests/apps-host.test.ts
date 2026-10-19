@@ -103,7 +103,7 @@ describe("the simulator as an MCP Apps host", () => {
 
   it("reads the view with resources/read and serves it once, under the view's own CSP", async () => {
     const { app } = await start();
-    const unknown = await post(app, "/sim/app-view", { uri: "ui://acme-remit/nope" });
+    const unknown = await post(app, "/sim/app-view", { uri: "ui://nuvio-remit/nope" });
     expect(unknown.status).toBe(404);
 
     const res = await post(app, "/sim/app-view", { uri: TRANSFER_VIEW_URI });
@@ -154,7 +154,7 @@ describe("the simulator as an MCP Apps host", () => {
     });
     expect(rate.status).toBe(403);
     const wrongView = await post(app, "/sim/app-tool", {
-      resource_uri: "ui://acme-remit/other",
+      resource_uri: "ui://nuvio-remit/other",
       name: "track_transfer",
       arguments: { latest: true },
     });
@@ -165,7 +165,7 @@ describe("the simulator as an MCP Apps host", () => {
       arguments: { latest: true },
     });
     expect(ok.status).toBe(200);
-    expect(ok.body.result.structuredContent.transfer_ref).toMatch(/^ACM-/);
+    expect(ok.body.result.structuredContent.transfer_ref).toMatch(/^NUV-/);
     expect(ok.body.exchanges.map((x: { method: string }) => x.method)).toContain("tools/call");
   });
 
@@ -201,7 +201,7 @@ describe("the simulator as an MCP Apps host", () => {
     });
     expect(res.status).toBe(200);
     expect(res.body.result.structuredContent).toMatchObject({
-      transfer_ref: "ACM-240121",
+      transfer_ref: "NUV-240121",
       status: "SCREENING",
     });
     expect(card.charges).toHaveLength(1);
@@ -212,8 +212,8 @@ describe("the simulator as an MCP Apps host", () => {
     // The view tells the assistant; the scripted engine stops waiting for a code.
     const note = await post(app, "/sim/app-context", {
       conversation_id: c,
-      text: "The user entered the code in the transfer view: ACM-240121, Checking details.",
-      structured: { event: "transfer_confirmed", transfer_ref: "ACM-240121" },
+      text: "The user entered the code in the transfer view: NUV-240121, Checking details.",
+      structured: { event: "transfer_confirmed", transfer_ref: "NUV-240121" },
     });
     expect(note.status).toBe(200);
     r = await say(app, "Yes.", c);
@@ -245,13 +245,13 @@ describe("the simulator as an MCP Apps host", () => {
     const first = await say(app, "Hello.");
     await post(app, "/sim/app-context", {
       conversation_id: first.conversation_id,
-      text: "Transfer ACM-240121 confirmed in the view.",
+      text: "Transfer NUV-240121 confirmed in the view.",
     });
     await say(app, "Is it done?", first.conversation_id);
     const user = seen.at(-1)?.messages?.at(-1);
     expect(user?.role).toBe("user");
     expect(user?.content?.map((b) => b.text)).toEqual([
-      "[From the transfer view on screen, not the user's words] Transfer ACM-240121 confirmed in the view.",
+      "[From the transfer view on screen, not the user's words] Transfer NUV-240121 confirmed in the view.",
       "Is it done?",
     ]);
     // Used once.

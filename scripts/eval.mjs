@@ -165,7 +165,7 @@ const SCENARIOS = {
     {
       code: "digits",
       calls: ["confirm_transfer"],
-      check: { confirmed: true, say: /ACM-\d+/, state: latestIs("SCREENING", "SENT_TO_PARTNER") },
+      check: { confirmed: true, say: /NUV-\d+/, state: latestIs("SCREENING", "SENT_TO_PARTNER") },
     },
     {
       say: "Send her another three thousand.",

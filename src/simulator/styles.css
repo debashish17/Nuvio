@@ -378,7 +378,7 @@ body.noproto .main {
   margin: 0;
 }
 
-/* An MCP Apps view from the server (ui://acme-remit/transfer) in its sandboxed iframe. */
+/* An MCP Apps view from the server (ui://nuvio-remit/transfer) in its sandboxed iframe. */
 .card.appview {
   padding: 10px 8px 6px;
   gap: 2px;

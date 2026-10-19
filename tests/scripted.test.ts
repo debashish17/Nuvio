@@ -145,7 +145,7 @@ describe("scripted mode: Play demo through the real tools, no language model", (
       name: "confirm_transfer",
       refused: "STEP_UP_REQUIRED",
     });
-    expect(at("{code}")?.reply).toMatch(/^Done\. ACM-240121 is on its way to Mum/);
+    expect(at("{code}")?.reply).toMatch(/^Done\. NUV-240121 is on its way to Mum/);
     expect(card.charges).toHaveLength(1);
     expect(at("Send her another three thousand.")?.tool_calls[0]).toMatchObject({
       refused: "MONTHLY_LIMIT",
@@ -230,7 +230,7 @@ describe("scripted mode: Play demo through the real tools, no language model", (
     const c = r.conversation_id;
     await say(app, "Yes.", c);
     r = await say(app, await readCode(app), c);
-    const ref = /ACM-\d+/.exec(r.reply)?.[0];
+    const ref = /NUV-\d+/.exec(r.reply)?.[0];
     r = await say(app, `Cancel transfer ${ref}.`, c);
     expect(r.reply).toMatch(/^Cancel the 500 dirham transfer/);
     for (const chip of [

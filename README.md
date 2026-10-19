@@ -104,8 +104,8 @@ This plays whole conversations through `/sim/chat` against a running server: rea
 ### Run with Docker
 
 ```bash
-docker build -t acme-remit .
-docker run -p 8080:8080 -e MCP_BEARER_TOKEN=<long-random-string> -e SIM_ACCESS_CODE=<code> acme-remit
+docker build -t nuvio-remit .
+docker run -p 8080:8080 -e MCP_BEARER_TOKEN=<long-random-string> -e SIM_ACCESS_CODE=<code> nuvio-remit
 # MCP endpoint: POST http://127.0.0.1:8080/mcp · health: GET /health
 ```
 
@@ -122,7 +122,7 @@ curl -s http://127.0.0.1:3000/mcp \
   -d '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-11-25","capabilities":{},"clientInfo":{"name":"curl","version":"0"}}}'
 ```
 
-Expected: `"protocolVersion":"2025-11-25"` and `"serverInfo":{"name":"acme-remit",...}`. Without the `Authorization` header the server answers `401`. Legacy `GET /sse` is not served.
+Expected: `"protocolVersion":"2025-11-25"` and `"serverInfo":{"name":"nuvio-remit",...}`. Without the `Authorization` header the server answers `401`. Legacy `GET /sse` is not served.
 
 ### Try the send flow with MCP Inspector
 
@@ -237,7 +237,7 @@ To report a vulnerability, see [SECURITY.md](SECURITY.md).
 The ledger is simulated, and these are deliberate shortcuts that a production version must replace:
 
 - **Card charges and the ledger.** The mock card is charged inside the SQLite transaction, so a decline rolls back every write. A real card processor's call is asynchronous and can fail or time out after the money is taken, so it can't run inside that transaction. Confirm needs an idempotency key per confirmation, a pending state, and reconciliation through an outbox and the processor's webhooks.
-- **References.** `ACM-` references are sequential (`MAX + 1`). Every lookup is scoped to the user, so this leaks nothing here, but production references should be random or keyed.
+- **References.** `NUV-` references are sequential (`MAX + 1`). Every lookup is scoped to the user, so this leaks nothing here, but production references should be random or keyed.
 - **One server per request.** Stateless Streamable HTTP builds a new `McpServer`, with its 14 tools and one resource, for each `POST /mcp`. That is fine at demo traffic; at scale, build it once per process.
 - **Quotes don't reserve limit.** Confirm re-checks limits, so a second quote that no longer fits is refused safely, but `get_pending` can still list it as open. Production should re-check open quotes, or reserve limit for them.
 - **Everything the simulation stands in for:** account linking (OAuth 2.1 with PKCE) instead of one Bearer token, Postgres instead of SQLite on one instance, a real SMS or push provider (preferably an in-app approval push), real sanctions screening, and a compliance review of every spoken string.

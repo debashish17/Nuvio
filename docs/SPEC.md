@@ -136,14 +136,14 @@ out: { "refused": { "code": "STEP_UP_REQUIRED", "method": "sms_otp", "sent_to": 
        "expires_at": "...+5m", "attempts_left": 3, "resolution": "Nothing has been sent yet. A 6-digit code was texted ..." } }
      // SMS to the registered phone: "Acme: 482913 is your code to send 2,000 dirhams to Mum. ..."
 in:  { "confirmation_token": "ct_9b2e...", "otp": "482913" }
-out: { "transfer_ref": "ACM-240133", "status": "SCREENING", "receive_amount": 46070, "eta": "within minutes",
+out: { "transfer_ref": "NUV-240133", "status": "SCREENING", "receive_amount": 46070, "eta": "within minutes",
        "receipt": "Receipt and FIRA will be available in the Acme app once paid out." }
   or { "refused": { "code": "OTP_INVALID" (attempts_left) | "OTP_EXPIRED" | "OTP_LOCKED" | "TOKEN_EXPIRED" | "TOKEN_USED"
        | "TOKEN_UNKNOWN" | "LIMIT_EXCEEDED" | "CARD_DECLINED", "resolution": "..." } }
 
 // 8 track_transfer
-in:  { "transfer_ref": "ACM-240133" }   or   { "latest": true }
-out: { "transfer_ref": "ACM-240133", "status": "PAID_OUT", "recipient": "Mum", "utr": "HDFCR52026100112345678",
+in:  { "transfer_ref": "NUV-240133" }   or   { "latest": true }
+out: { "transfer_ref": "NUV-240133", "status": "PAID_OUT", "recipient": "Mum", "utr": "HDFCR52026100112345678",
        "timeline": [ { "status": "FUNDS_RECEIVED", "at": "..." }, { "status": "SCREENING", "at": "..." },
                      { "status": "SENT_TO_PARTNER", "at": "..." }, { "status": "PAID_OUT", "at": "..." } ] }
   or { "status": "ON_HOLD", "customer_label": "Under review",
@@ -166,11 +166,11 @@ out: { "kyc_tier": "Verified (Emirates ID)", "next_tier": "Verified Plus: add sa
        "explanation": "On your current tier you can send 20,000 dirhams a month. You have 1,500 left until 1 November. ..." }
 
 // 9 cancel_transfer (preview, then execute)
-in:  { "transfer_ref": "ACM-240120" }
+in:  { "transfer_ref": "NUV-240120" }
 out: { "cancel_token": "cx_41d7...", "expires_at": "...+5m", "status": "ON_HOLD", "cancellable": true,
        "preview": "Cancel the 5,000 dirham transfer to your NRE account. 5,000 dirhams, including the 15 dirham fee, go back to your card ending 8812 within 2 to 7 working days. Shall I cancel it?" }
-in:  { "transfer_ref": "ACM-240120", "cancel_token": "cx_41d7..." }
-out: { "transfer_ref": "ACM-240120", "status": "CANCELLED", "refund": { "amount": 5000, "currency": "AED", "to": "card ending 8812", "eta": "2-7 working days" },
+in:  { "transfer_ref": "NUV-240120", "cancel_token": "cx_41d7..." }
+out: { "transfer_ref": "NUV-240120", "status": "CANCELLED", "refund": { "amount": 5000, "currency": "AED", "to": "card ending 8812", "eta": "2-7 working days" },
        "limits_now": { "monthly": { "remaining": 6500 } } }
   or { "refused": { "code": "CANCEL_WINDOW_CLOSED", "status": "SENT_TO_PARTNER",
        "resolution": "This transfer has already been sent. A recall needs the recipient's consent; Acme support can request one from the app." } }
@@ -193,11 +193,11 @@ out: { "topic": "lrs", "title": "The Liberalised Remittance Scheme (LRS)",
 in:  {}
 out: { "open_quotes": [ { "quote_id": "q_7f3a", "recipient": "Mum", "beneficiary_id": "ben_01", "send_amount": 2000,
          "receive_amount": 51598.09, "status": "open", "rate_locked_until": "..." } ],
-       "under_review": [ { "transfer_ref": "ACM-240120", "recipient": "My NRE account", "send_amount": 5000,
+       "under_review": [ { "transfer_ref": "NUV-240120", "recipient": "My NRE account", "send_amount": 5000,
          "sent_on": "2026-10-01", "customer_label": "Under review", "cancellable": true,
          "action_required": { "type": "document", "document": "updated Emirates ID", "how": "upload in the Acme app", "deadline": "2026-10-08" } } ],
        "fired_alerts": [ { "alert_id": "al_01", "pair": "AED/INR", "target": 26.5, "direction": "above", "fired_at": "..." } ],
-       "last_by_recipient": [ { "beneficiary_id": "ben_01", "recipient": "Mum", "full_name": "Sunita Nair", "transfer_ref": "ACM-240116",
+       "last_by_recipient": [ { "beneficiary_id": "ben_01", "recipient": "Mum", "full_name": "Sunita Nair", "transfer_ref": "NUV-240116",
          "send_amount": 2000, "payout_method": "bank_deposit", "purpose": "family_maintenance", "date": "2026-10-01", "customer_label": "Paid out" } ],
        "summary": "Your 5,000 dirham transfer to My NRE account is under review: upload updated Emirates ID in the Acme app by 8 October." }
 ```

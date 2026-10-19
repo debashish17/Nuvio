@@ -72,8 +72,8 @@ user: Yes.
   tools/call confirm_transfer {"confirmation_token":"ct_..."} -> STEP_UP_REQUIRED, phone ending 4471
 assistant: I've texted a code to your phone ending 4471. Please read it out.
 user: 4 8 2 9 1 3
-  tools/call confirm_transfer {"confirmation_token":"ct_...","otp":"482913"} -> ACM-240121
-assistant: Done. ACM-240121 is on its way to Mum.
+  tools/call confirm_transfer {"confirmation_token":"ct_...","otp":"482913"} -> NUV-240121
+assistant: Done. NUV-240121 is on its way to Mum.
 ```
 
 In the local simulator, the texted code appears on the simulated phone on the page (and in `GET /sim/state` as `sms`).

@@ -161,7 +161,7 @@ interface SeedTransfer {
   status: SeedStatus;
 }
 
-// Chronological; refs are assigned in this order so the ON_HOLD one is ACM-240120 (SPEC example).
+// Chronological; refs are assigned in this order so the ON_HOLD one is NUV-240120 (SPEC example).
 const TRANSFERS: SeedTransfer[] = [
   ...[-7, -6, -5, -4, -3].map((m) => mum(m)),
   ben02(-3),
@@ -220,7 +220,7 @@ function ben02(monthOffset: number): SeedTransfer {
   };
 }
 
-// Two below 240108 since the NRE transfers were split, so the ON_HOLD one is still ACM-240120.
+// Two below 240108 since the NRE transfers were split, so the ON_HOLD one is still NUV-240120.
 const FIRST_REF = 240106;
 const RETURN_REASON = "recipient bank reported a name mismatch";
 // 485 AED converted at the August board rate (25.7268) -> 12,477.49 INR; returned and bought back at
@@ -303,7 +303,7 @@ export function seed(db: Db, now: Date = new Date()): SeedSummary {
       const ben = BENEFICIARIES.find((b) => b.id === t.beneficiaryId);
       const rate = boardRate(t.monthOffset);
       if (!ben || rate === undefined) throw new Error(`Bad seed row ${i}`);
-      const ref = `ACM-${FIRST_REF + i}`;
+      const ref = `NUV-${FIRST_REF + i}`;
       const feeMinor = PAYOUT_POLICY[ben.payout_method].feeMinor;
       const sendMinor = t.sendAed * 100;
       const created = when();
