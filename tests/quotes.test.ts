@@ -169,6 +169,14 @@ describe("QuoteService.create", () => {
         available_methods: ["bank_deposit", "cash_pickup"],
       },
     });
+    const nre = await quotes.create(USER_ID, {
+      beneficiaryId: "ben_04",
+      sendMinor: aed(100),
+      payoutMethod: "upi",
+    });
+    expect(isRefusal(nre) && nre.refused.resolution).toMatch(
+      /^Your NRE account has no UPI ID saved\./,
+    );
   });
 
   it("refuses amounts that do not exceed the fee", async () => {

@@ -32,7 +32,7 @@ describe("PendingService", () => {
       }),
     ]);
     expect(p.summary).toMatch(
-      /^Your 5,000 dirham transfer to My NRE account is under review: upload updated Emirates ID in the Nuvio app by \d+ \w+\.$/,
+      /^Your 5,000 dirham transfer to your NRE account is under review: upload updated Emirates ID in the Nuvio app by \d+ \w+\.$/,
     );
     expect(p.open_quotes).toEqual([]);
     expect(p.fired_alerts).toEqual([]);
@@ -65,6 +65,14 @@ describe("PendingService", () => {
     );
     clock.advance(31 * 60_000); // past the 30-minute rate lock
     expect(core.pending.pending(USER_ID).open_quotes).toEqual([]);
+  });
+
+  it("names a 'My ...' recipient as the user would hear it: 'your NRE account'", async () => {
+    const q = await core.quotes.create(USER_ID, { beneficiaryId: "ben_04", sendMinor: 100_000 });
+    if (isRefusal(q)) throw new Error("quote refused");
+    const { summary } = core.pending.pending(USER_ID);
+    expect(summary).toContain("You have an open quote to send 1,000 dirhams to your NRE account.");
+    expect(summary).not.toContain("My NRE account");
   });
 
   it("includes rate alerts that fired in the last 7 days", async () => {

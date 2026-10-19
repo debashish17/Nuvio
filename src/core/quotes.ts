@@ -22,7 +22,14 @@ import {
 } from "./policy.js";
 import type { RatesService } from "./rates.js";
 import { isRefusal, refuse } from "./refusal.js";
-import { destinationPhrase, getRecipient, getUser, recipientPhrase } from "./repo.js";
+import {
+  capitalise,
+  destinationPhrase,
+  getRecipient,
+  getUser,
+  recipientPhrase,
+  spokenNickname,
+} from "./repo.js";
 import { addMinutes } from "./time.js";
 import {
   PAYOUT_METHODS,
@@ -218,7 +225,7 @@ export class QuoteService {
     if (!available.includes(method)) {
       return refuse(
         "PAYOUT_METHOD_UNAVAILABLE",
-        `${recipient.nickname} has no ${method === "upi" ? "UPI ID" : "bank account"} saved. Choose ${available.map((m) => m.replace("_", " ")).join(" or ")}, or add the details in the Nuvio app.`,
+        `${capitalise(spokenNickname(recipient.nickname))} has no ${method === "upi" ? "UPI ID" : "bank account"} saved. Choose ${available.map((m) => m.replace("_", " ")).join(" or ")}, or add the details in the Nuvio app.`,
         { payout_method: method, available_methods: available },
       );
     }
@@ -400,8 +407,6 @@ export function readBack(q: QuoteRecord, r: Recipient, cardLast4: string): strin
     "Shall I go ahead?",
   ].join(" ");
 }
-
-const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
 
 interface QuoteRow {
   id: string;

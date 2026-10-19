@@ -200,7 +200,7 @@ out: { "open_quotes": [ { "quote_id": "q_7f3a", "recipient": "Mum", "beneficiary
        "fired_alerts": [ { "alert_id": "al_01", "pair": "AED/INR", "target": 26.5, "direction": "above", "fired_at": "..." } ],
        "last_by_recipient": [ { "beneficiary_id": "ben_01", "recipient": "Mum", "full_name": "Sunita Nair", "transfer_ref": "NUV-240116",
          "send_amount": 2000, "payout_method": "bank_deposit", "purpose": "family_maintenance", "date": "2026-10-01", "customer_label": "Paid out" } ],
-       "summary": "Your 5,000 dirham transfer to My NRE account is under review: upload updated Emirates ID in the Nuvio app by 8 October." }
+       "summary": "Your 5,000 dirham transfer to your NRE account is under review: upload updated Emirates ID in the Nuvio app by 8 October." }
 ```
 
 Every refusal is structured (`code`, numbers, `resolution`) so the model can explain it well. No tool ever returns a bare string error.

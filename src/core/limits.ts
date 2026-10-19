@@ -2,6 +2,7 @@ import type { Db } from "../db/connection.js";
 import { maxSendForReceive, sayAed, sayDate, sayInr } from "./money.js";
 import { PAYOUT_POLICY, VERIFIED_TIER, type TierConfig } from "./policy.js";
 import { refuse } from "./refusal.js";
+import { capitalise, spokenNickname } from "./repo.js";
 import { monthlyResetDate, startOfDubaiDay, startOfDubaiMonth, startOfDubaiYear } from "./time.js";
 import type { Clock, PayoutMethod, Recipient, Refusal, RefusalCode, Warning } from "./types.js";
 
@@ -77,7 +78,7 @@ export class LimitService {
     if (sendMinor > t.newRecipientFirstTransferMinor && this.isNewRecipient(userId, recipient)) {
       return refuse(
         "NEW_RECIPIENT_LIMIT",
-        `${recipient.nickname} was added less than ${t.newRecipientWindowHours} hours ago, so the first transfer is capped at ${sayAed(t.newRecipientFirstTransferMinor)}. Send up to that now; normal limits apply after ${t.newRecipientWindowHours} hours.`,
+        `${capitalise(spokenNickname(recipient.nickname))} was added less than ${t.newRecipientWindowHours} hours ago, so the first transfer is capped at ${sayAed(t.newRecipientFirstTransferMinor)}. Send up to that now; normal limits apply after ${t.newRecipientWindowHours} hours.`,
         {
           limit_minor: t.newRecipientFirstTransferMinor,
           requested_minor: sendMinor,
@@ -162,7 +163,7 @@ export class LimitService {
     if (pickups.n >= cap.perRecipientPerYear) {
       return refuse(
         "CASH_PICKUP_LIMIT",
-        `${recipient.nickname} has had ${cap.perRecipientPerYear} cash pickups this year, the yearly maximum. Choose bank deposit or UPI instead.`,
+        `${capitalise(spokenNickname(recipient.nickname))} has had ${cap.perRecipientPerYear} cash pickups this year, the yearly maximum. Choose bank deposit or UPI instead.`,
         { cap: "per_recipient_per_year", limit: cap.perRecipientPerYear, used: pickups.n, ...base },
       );
     }

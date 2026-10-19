@@ -73,6 +73,15 @@ describe("StepUpService.confirm", () => {
     expect(card.charges).toEqual([]);
   });
 
+  it("the text names a 'My ...' recipient as 'your ...'", async () => {
+    const q = ok(
+      await core.quotes.create(USER_ID, { beneficiaryId: "ben_04", sendMinor: 100_000 }),
+    );
+    const token = ok(core.quotes.prepare(USER_ID, q.quote_id, CALLER)).confirmation_token;
+    core.stepUp.confirm(USER_ID, token, CALLER);
+    expect(texts().at(-1)?.body).toContain("to send 1,000 dirhams to your NRE account.");
+  });
+
   it("the right code confirms once; replaying it is refused", async () => {
     const token = await prepared();
     core.stepUp.confirm(USER_ID, token, CALLER);
