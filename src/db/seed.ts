@@ -1,5 +1,5 @@
 import { applyMargin, receiveMinor } from "../core/money.js";
-import { DEMO_USER_ID, FX_MARGIN_BP, PAYOUT_POLICY } from "../core/policy.js";
+import { DEMO_USER_ID, FX_MARGIN_BP, PAYOUT_POLICY, VERIFIED_TIER } from "../core/policy.js";
 import { deriveAedInr } from "../core/rates.js";
 import { startOfDubaiDay } from "../core/time.js";
 import type { PayoutMethod } from "../core/types.js";
@@ -154,7 +154,10 @@ type SeedStatus = "PAID_OUT" | "RETURNED" | "ON_HOLD";
 
 interface SeedTransfer {
   monthOffset: number;
+  /** Day of the month, for earlier months. */
   day: number;
+  /** This month only: days before today (see thisMonthDays). */
+  daysAgo?: number;
   beneficiaryId: string;
   sendAed: number;
   purpose: string;
@@ -178,19 +181,22 @@ const TRANSFERS: SeedTransfer[] = [
   ben02(-1),
   // This month: 2,000 + 1,500 + 5,000 + 3,000 + 5,000 = 16,500 of the 20,000 monthly limit. Every
   // transfer fits the limits it would be checked against today: 5,000 per card-funded transfer,
-  // 10,000 a day (tests/db.test.ts checks this).
-  mum(0),
-  ben02(0),
-  nre(6, 5000, "PAID_OUT"),
-  nre(8, 3000, "PAID_OUT"),
-  nre(10, 5000, "ON_HOLD"),
+  // 10,000 a day (tests/db.test.ts checks this). Dated back from today, not on fixed days, so the
+  // held transfer stays recent and its RFI deadline stays ahead whenever the demo runs. On the
+  // 15th these are the 2nd, 5th, 6th, 8th and 10th.
+  { ...mum(0), daysAgo: 13 },
+  { ...ben02(0), daysAgo: 10 },
+  nre(9, 5000, "PAID_OUT"),
+  nre(7, 3000, "PAID_OUT"),
+  nre(5, 5000, "ON_HOLD"),
 ];
 
-/** Savings to the customer's own NRE account. */
-function nre(day: number, sendAed: number, status: SeedStatus): SeedTransfer {
+/** Savings to the customer's own NRE account, this month, `daysAgo` days before today. */
+function nre(daysAgo: number, sendAed: number, status: SeedStatus): SeedTransfer {
   return {
     monthOffset: 0,
-    day,
+    day: 0,
+    daysAgo,
     beneficiaryId: "ben_04",
     sendAed,
     purpose: "savings_own_account",
@@ -236,6 +242,29 @@ function at(now: Date, monthOffset: number, day: number, minutes = 0): Date {
   return new Date(
     Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + monthOffset, day, 9, 0) + minutes * 60_000,
   );
+}
+
+/**
+ * The day of the month for each of this month's transfers: `daysAgo` before today, but never
+ * before the 1st or on or after today, in order, and never past the daily cap on one day (early in
+ * the month several share a day). On the 1st or 2nd there is no room to spread them, so they share
+ * the only day there is.
+ */
+export function thisMonthDays(
+  today: number,
+  items: { daysAgo: number; sendAed: number }[],
+  dailyCapAed: number,
+): number[] {
+  const last = Math.max(1, today - 1);
+  const totals = new Map<number, number>();
+  let floor = 1;
+  return items.map((t) => {
+    let day = Math.min(last, Math.max(floor, today - t.daysAgo));
+    while (day < last && (totals.get(day) ?? 0) + t.sendAed > dailyCapAed) day++;
+    totals.set(day, (totals.get(day) ?? 0) + t.sendAed);
+    floor = day;
+    return day;
+  });
 }
 
 const iso = (d: Date) => d.toISOString();
@@ -286,17 +315,23 @@ export function seed(db: Db, now: Date = new Date()): SeedSummary {
 
     let events = 0;
     const today = dubai(now).getUTCDate();
+    const current = TRANSFERS.filter((t) => t.monthOffset === 0);
+    const days = thisMonthDays(
+      today,
+      current.map((t) => ({ daysAgo: t.daysAgo ?? 0, sendAed: t.sendAed })),
+      VERIFIED_TIER.dailyMinor / 100,
+    );
     let thisMonthIndex = 0;
     TRANSFERS.forEach((t, i) => {
-      // Never future-date: this month's transfers move before today if their SPEC day has not come.
-      const clamp = t.monthOffset === 0 && t.day >= today;
-      const day = clamp ? Math.max(1, today - 1) : t.day;
-      const base = t.monthOffset === 0 ? thisMonthIndex++ * 10 : 0;
+      const k = t.monthOffset === 0 ? thisMonthIndex++ : -1;
+      const day = k >= 0 ? (days[k] ?? 1) : t.day;
+      // Transfers that share a day keep their order, ten minutes apart.
+      const sameDayBefore = k >= 0 ? days.slice(0, k).filter((d) => d === day).length : 0;
       // On the 1st there is no earlier day this month: start at Dubai midnight, steps in seconds.
-      const firstOfMonth = clamp && today === 1;
+      const firstOfMonth = k >= 0 && today === 1;
       const start = firstOfMonth
-        ? new Date(startOfDubaiDay(now).getTime() + base * 1000)
-        : at(now, t.monthOffset, day, clamp ? base : 0);
+        ? new Date(startOfDubaiDay(now).getTime() + k * 10_000)
+        : at(now, t.monthOffset, day, sameDayBefore * 10);
       const unit = firstOfMonth ? 1000 : 60_000;
       const when = (dayDelta = 0, minutes = 0) =>
         new Date(start.getTime() + dayDelta * 86_400_000 + minutes * unit);
