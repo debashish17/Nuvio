@@ -1,4 +1,4 @@
-# Acme Remit MCP server: multi-stage build on node:22-alpine (CLAUDE.md toolchain).
+# Nuvio Remit MCP server: multi-stage build on node:22-alpine (CLAUDE.md toolchain).
 # Runtime config comes from the environment (see .env.example); no secrets are baked in.
 
 ARG NODE_IMAGE=node:22-alpine
@@ -32,7 +32,7 @@ RUN pnpm install --frozen-lockfile --prod
 FROM ${NODE_IMAGE} AS runtime
 ENV NODE_ENV=production \
     PORT=8080 \
-    DB_PATH=/app/data/acme-remit.db
+    DB_PATH=/app/data/nuvio-remit.db
 WORKDIR /app
 COPY --from=prod-deps --chown=node:node /app/node_modules ./node_modules
 COPY --from=build --chown=node:node /app/dist ./dist

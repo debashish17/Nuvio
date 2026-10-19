@@ -2,7 +2,7 @@ name: Deploy
 
 # After CI passes on main: build the image, push <sha> and "live" to ECR, start an App Runner
 # deployment, wait for it, then measure per-tool latency from this (US-hosted) runner.
-# Credentials come from GitHub OIDC (infra/acme-remit.yaml, GitHubDeployRole); no AWS keys are stored.
+# Credentials come from GitHub OIDC (infra/nuvio-remit.yaml, GitHubDeployRole); no AWS keys are stored.
 # Skipped until the repository variable AWS_DEPLOY_ROLE_ARN is set.
 
 on:
@@ -29,7 +29,7 @@ jobs:
     timeout-minutes: 30
     env:
       AWS_REGION: us-east-1
-      STACK: ${{ vars.AWS_STACK_NAME || 'acme-remit' }}
+      STACK: ${{ vars.AWS_STACK_NAME || 'nuvio-remit' }}
       SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
     steps:
       - uses: actions/checkout@v7

@@ -144,9 +144,9 @@ eval $I --method tools/call --tool-name quote_transfer --tool-arg send_amount=30
 
 ## Deploy to AWS App Runner (optional)
 
-Hosting isn't needed to judge or run this project; this is for a public URL. Everything is in `infra/acme-remit.yaml` (CloudFormation) and `.github/workflows/deploy.yml` (GitHub OIDC, no stored AWS keys). Region `us-east-1`.
+Hosting isn't needed to judge or run this project; this is for a public URL. Everything is in `infra/nuvio-remit.yaml` (CloudFormation) and `.github/workflows/deploy.yml` (GitHub OIDC, no stored AWS keys). Region `us-east-1`.
 
-1. **Create the stack** (console: CloudFormation → Create stack → upload `infra/acme-remit.yaml`), name `acme-remit`, `CreateService=false`, optionally `BudgetEmail`. It creates the ECR repo, generated secrets (`acme-remit/mcp-bearer-token`, `/sim-access-code`, `/dev-controls-code`), the App Runner roles and the GitHub deploy role.
+1. **Create the stack** (console: CloudFormation → Create stack → upload `infra/nuvio-remit.yaml`), name `nuvio-remit`, `CreateService=false`, optionally `BudgetEmail`. It creates the ECR repo, generated secrets (`nuvio-remit/mcp-bearer-token`, `/sim-access-code`, `/dev-controls-code`), the App Runner roles and the GitHub deploy role.
 2. **Set the repository variable** `AWS_DEPLOY_ROLE_ARN` (GitHub → Settings → Secrets and variables → Actions → Variables) to the stack output `GitHubDeployRoleArn`.
 3. **Push the first image**: run the *Deploy* workflow (Actions → Deploy → Run workflow). With no service yet it pushes `<sha>` and `live` to ECR and stops.
 4. **Create the service**: update the stack with `CreateService=true`. The output `ServiceUrl` is the public URL; the MCP endpoint is `<ServiceUrl>/mcp`.
