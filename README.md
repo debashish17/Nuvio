@@ -11,7 +11,7 @@ A self-hosted [MCP](https://modelcontextprotocol.io) server (spec 2025-11-25, St
 
 Built for the **Alexa+ track** of [Build, Ship, Shape: Amazon Developer Hackathon](https://amazonappdev2026.devpost.com/) (Devpost), with the AWS Builder and Open Source mini challenges.
 
-> **The simulator is the demo.** Amazon's Alexa+ toolchain (the Alexa+ CLI, MCP Toolkit and web simulator) is not available to hackathon participants, so this repo ships its own web simulator that stands in for Alexa+ and calls the MCP server exactly as Alexa+ would. Judges can run everything locally with **nothing but Node**: no AWS account, no API key (see [Run it locally with no AWS account](#run-it-locally-with-no-aws-account)).
+> **The simulator is the demo.** Amazon's Alexa+ toolchain (the Alexa+ CLI, MCP Toolkit and web simulator) is not available to hackathon participants, so this repo ships its own web simulator that stands in for Alexa+ and calls the MCP server exactly as Alexa+ would. Judges can run everything locally with **nothing but Node** (and the pnpm that comes with it): no AWS account, no API key (see [Run it locally with no AWS account](#run-it-locally-with-no-aws-account)).
 
 ## Built for Alexa+
 
@@ -24,9 +24,9 @@ Built for the **Alexa+ track** of [Build, Ship, Shape: Amazon Developer Hackatho
 
 ## What it does
 
-One remittance provider's own Alexa+ add-on. A customer in Dubai can ask for today's rate, compare payout methods, send money to a saved recipient, track it to the UTR, cancel before payout, check limits, and set a rate alert — by voice.
+One remittance provider's own Alexa+ add-on. A customer in Dubai can ask for today's rate, compare payout methods, send money to a saved recipient, track it to the UTR, cancel before it goes to the payout partner, check limits, and set a rate alert — by voice.
 
-Four safety properties hold for every money movement:
+Four safety properties guard every transfer (a cancel, which can only refund the sender's own card, has the first three but no step-up code):
 
 1. **Read-back before action.** `prepare_transfer` returns the exact sentence to read back; nothing moves until the user agrees.
 2. **Single-use, expiring tokens.** `confirm_transfer` and `cancel_transfer` only execute with a 5-minute, single-use token bound to the authenticated caller.
@@ -35,26 +35,26 @@ Four safety properties hold for every money movement:
 
 ## Spec
 
-`docs/SPEC.md` is the build contract: decisions, architecture, the 14-tool contract with JSON schemas, core module interfaces, data model and seed, token lifecycle and tests, simulator design, and the phase plan. The architecture, transfer-lifecycle and timeline diagrams live in the source doc and are not in the Markdown export.
+`docs/SPEC.md` is the build contract: decisions, architecture, the 14-tool contract with example inputs and outputs, core module interfaces, data model and seed, token lifecycle and tests, simulator design, and the phase plan. The architecture, transfer-lifecycle and timeline diagrams live in the source doc and are not in the Markdown export.
 
 ## Status
 
-Phase 4b (MCP Apps view), on top of Phases 1–4. All 14 tools work over `POST /mcp` with server-enforced refusals, including a step-up code before money moves and `get_pending`, which carries context across conversations. The transfer tools show an [MCP Apps](#mcp-apps-view) view. The simulator runs the whole demo with no language model (scripted mode), or live with Amazon Bedrock or any OpenAI-compatible model. See the phase plan in `docs/SPEC.md`.
+Phase 4b (MCP Apps view), on top of Phases 1–4. All 14 tools work over `POST /mcp` with server-enforced refusals, including a step-up code before a transfer is sent and `get_pending`, which carries context across conversations. The transfer tools show an [MCP Apps](#mcp-apps-view) view. The simulator runs the whole demo with no language model (scripted mode), or live with Amazon Bedrock or any OpenAI-compatible model. See the phase plan in `docs/SPEC.md`.
 
 | Tool | Does | Moves money |
 | --- | --- | --- |
-| `get_rate` | Nuvio's AED→INR rate, mid-market rate, 7-day trend; any other ECB or dollar-pegged pair for information | |
+| `get_rate` | Nuvio's AED→INR rate, mid-market rate, trend over the last 7 published days; any other ECB or dollar-pegged pair for information | |
 | `compare_options` | Receive amount by bank deposit, UPI and cash pickup, against a typical bank | |
 | `list_beneficiaries` / `resolve_beneficiary` | Saved recipients; find one by name, nickname or relationship | |
 | `quote_transfer` | Fee, locked rate, guaranteed receive amount, limit and purpose checks; held 30 min | |
 | `prepare_transfer` | The exact read-back sentence and a single-use 5-minute token | |
 | `confirm_transfer` | Texts a one-time code to the phone; with that code, charges the card and submits, once | **yes** |
 | `track_transfer` / `get_transfer_history` | Status, timeline, UTR, RFI when under review; history with totals | |
-| `cancel_transfer` | Preview with a cancel token, then cancel and refund before payout | **yes** |
+| `cancel_transfer` | Preview with a cancel token, then cancel and refund before it goes to the payout partner | **yes** |
 | `check_limits` | Tier, remaining limits, plain-words explanation of any refusal | |
 | `set_rate_alert` | Tell the user when the rate reaches a target | |
 | `get_help` | Nuvio's own answers (demo text, pending compliance review): documents, steps, recipients, NRE/NRO, LRS, tax, refunds, safety | |
-| `get_pending` | What's waiting since last time: open quotes, transfers under review with their RFI, fired alerts, and the last transfer per recipient ("the usual") | |
+| `get_pending` | What's waiting now: open quotes, transfers under review with their RFI, alerts fired in the last 7 days, and the last transfer per recipient ("the usual") | |
 
 ## Run
 
@@ -66,13 +66,17 @@ You need Node 22 and pnpm (`corepack enable` gives you pnpm). Nothing else: no A
 git clone https://github.com/debashish17/Nuvio.git
 cd Nuvio
 pnpm install
-# a .env with just two lines (any values; the token must be at least 16 characters)
+# a .env with just two lines (any values: the token needs at least 16 characters, the access code at least 8)
 printf 'MCP_BEARER_TOKEN=local-demo-token-1234567890\nSIM_ACCESS_CODE=demo-code\n' > .env
 pnpm db:seed
 pnpm dev
 ```
 
 Open http://localhost:3000, enter the access code (`demo-code` above), click **Play demo**, then **Play all**. The server log says `simulator mode: scripted (no AWS credentials found)`: with no model configured, the simulator follows the demo script and drives the real tools, so every step in the protocol panel is a genuine JSON-RPC call to `POST /mcp`. The step-up code arrives on the simulated phone; the assistant speaks with your browser's voice. Typing your own sentences needs a model (below); the page says so.
+
+If this machine already has AWS credentials (environment, default profile or `aws login`), the server finds them and starts in the live mode instead, which costs money. To stay free, add `SIM_MODE=scripted` and `POLLY_VOICE=none` to `.env`.
+
+On the 1st of a month (Dubai time), the month's seeded transfers all fall on that day, so the demo's first send is refused by the daily limit. Any other day works.
 
 On Windows PowerShell, create the `.env` with `Set-Content .env "MCP_BEARER_TOKEN=local-demo-token-1234567890`nSIM_ACCESS_CODE=demo-code"`.
 
@@ -98,11 +102,11 @@ pnpm dev
 
 ### The simulator
 
-Open `http://127.0.0.1:3000/` and enter `SIM_ACCESS_CODE` from your `.env`. **Play demo** shows the demo lines one at a time; **Play all** runs them in a row, each after the last reply has been spoken. With a live model you can also talk with the orb, the mic button or Space (Chrome or Edge: hold while you speak, or tap once and it listens until you pause) or type anything. The panel on the right shows each real JSON-RPC exchange with `POST /mcp`; click a row to see the request and response, with tokens and codes masked. The page talks only to `/sim/*`, and the server-side relay holds the Bearer secret.
+Open `http://127.0.0.1:3000/` and enter `SIM_ACCESS_CODE` from your `.env`. **Play demo** shows the demo lines one at a time; **Play all** runs them in a row, each after the last reply has been spoken. With a live model you can also talk with the orb, the mic button or Space (Chrome or Edge: hold while you speak, or tap once and it listens until you pause) or type anything. The panel on the right shows each real JSON-RPC exchange with `POST /mcp`; click a row to see the request and response, with tokens and codes masked. The page calls only `/sim/*` (and `/dev/*` for the dev controls), never `/mcp`; the server-side relay holds the Bearer secret.
 
 The voice is the browser's own, or, when AWS credentials are available, Amazon Polly's Indian English neural voice (Kajal) through `POST /sim/speak`; the voice picker switches between them, and the page falls back to the browser's voice if Polly fails (`POLLY_VOICE=none` turns Polly off).
 
-For recording, `/?dev=1` adds dev controls (advance the ticker, release the held transfer, fire a rate alert, reset the demo data). They need `DEV_CONTROLS_CODE`, and `/dev/*` answers 404 when it is unset. With the dev code entered, chat turns skip the per-IP limit (the daily Bedrock cap still applies). Press H to hide the panels.
+For recording, `/?dev=1` adds dev controls (advance the ticker, release the held transfer, fire a rate alert, reset the demo data). They need `DEV_CONTROLS_CODE`, and `/dev/*` answers 404 when it is unset. With the dev code entered, chat turns skip the per-IP limit (the daily Bedrock cap still applies). Press H to hide the ledger strip; the Protocol button hides the protocol panel.
 
 ### Conversation evals
 
@@ -110,13 +114,13 @@ For recording, `/?dev=1` adds dev controls (advance the ticker, release the held
 node --env-file=.env scripts/eval.mjs --runs 3   # or --only script,spoken,safety, --verbose
 ```
 
-This plays whole conversations through `/sim/chat` against a running server: real Bedrock, real `/mcp` round trips, a fresh seed for each. There are three: the demo script word for word, the same journey as speech recognition delivers it ("mom", numbers in words, a question and a change mid-confirmation), and consent edge cases. Each turn is checked for the tools called and not called, refusals, word-for-word read-backs and cancel previews, and words that must not be spoken ("screening", "beneficiary", ids, lists, ISO dates). It uses about 65 Bedrock calls per pass of all three. It resets the demo data, so don't run it while someone is using the simulator.
+This plays whole conversations through `/sim/chat` against a running server: real Bedrock, real `/mcp` round trips, a fresh seed for each. There are five: the demo script from the rate question on, the same journey as speech recognition delivers it ("mom", numbers in words, a question and a change mid-confirmation), other currencies (information only, nothing sent), general questions answered from `get_help`, and consent edge cases. Each turn is checked for the tools called and not called, refusals, word-for-word read-backs and cancel previews, and words that must not be spoken ("screening", "beneficiary", ids, lists, ISO dates). A pass of all five uses about 65 to 90 Bedrock calls; `--only script,spoken,safety` runs the core three. It needs `DEV_CONTROLS_CODE` in `.env`, because it resets the demo data through `/dev/reset`, so don't run it while someone is using the simulator.
 
 ### Run with Docker
 
 ```bash
 docker build -t nuvio-remit .
-docker run -p 8080:8080 -e MCP_BEARER_TOKEN=<long-random-string> -e SIM_ACCESS_CODE=<code> nuvio-remit
+docker run -p 8080:8080 -e MCP_BEARER_TOKEN=<long-random-string> -e SIM_ACCESS_CODE=<code of 8+ characters> nuvio-remit
 # MCP endpoint: POST http://127.0.0.1:8080/mcp · health: GET /health
 ```
 
@@ -126,6 +130,7 @@ The image is multi-stage on `node:22-alpine`, runs as the non-root `node` user, 
 
 ```bash
 export MCP_BEARER_TOKEN=change-me-to-a-long-random-string   # the value in your .env
+export SIM_ACCESS_CODE=change-me-sim-code                   # the value in your .env
 curl -s http://127.0.0.1:3000/mcp \
   -H "Authorization: Bearer $MCP_BEARER_TOKEN" \
   -H "Content-Type: application/json" \
@@ -137,29 +142,29 @@ Expected: `"protocolVersion":"2025-11-25"` and `"serverInfo":{"name":"nuvio-remi
 
 ### Try the send flow with MCP Inspector
 
-Run these from outside the repo folder (`npx` refuses to run inside a pnpm project; see `FRICTION_LOG.md`). Each call is a separate connection; tokens are bound to the authenticated caller, not a session.
+Run these from outside the repo folder (`npx` refuses to run inside a pnpm project; see `FRICTION_LOG.md`), in the shell where you exported the two variables above. Each call is a separate connection; tokens are bound to the authenticated caller, not a session. The Inspector reads every `--tool-arg` value as JSON, so the code goes in double quotes inside single quotes: otherwise `482913` arrives as a number and the tool refuses it.
 
 ```bash
-I="npx -y @modelcontextprotocol/inspector@latest --cli http://127.0.0.1:3000/mcp --transport http --header 'Authorization: Bearer $MCP_BEARER_TOKEN'"
-eval $I --method tools/list
-eval $I --method tools/call --tool-name quote_transfer --tool-arg send_amount=2000 --tool-arg beneficiary_id=ben_01
-eval $I --method tools/call --tool-name prepare_transfer --tool-arg quote_id=<quote_id>
-eval $I --method tools/call --tool-name confirm_transfer --tool-arg confirmation_token=<confirmation_token>
+I() { npx -y @modelcontextprotocol/inspector@latest --cli http://127.0.0.1:3000/mcp --transport http --header "Authorization: Bearer $MCP_BEARER_TOKEN" "$@"; }
+I --method tools/list
+I --method tools/call --tool-name quote_transfer --tool-arg send_amount=2000 --tool-arg beneficiary_id=ben_01
+I --method tools/call --tool-name prepare_transfer --tool-arg quote_id=<quote_id>
+I --method tools/call --tool-name confirm_transfer --tool-arg confirmation_token=<confirmation_token>
 # -> STEP_UP_REQUIRED: a code was texted to the simulated phone; read it from /sim/state, then:
 curl -s "http://127.0.0.1:3000/sim/state?since=2000-01-01T00:00:00Z" -H "x-sim-code: $SIM_ACCESS_CODE" | grep -o 'Nuvio: [0-9]*'
-eval $I --method tools/call --tool-name confirm_transfer --tool-arg confirmation_token=<confirmation_token> --tool-arg otp=<code>
-eval $I --method tools/call --tool-name quote_transfer --tool-arg send_amount=3000 --tool-arg beneficiary_id=ben_01   # refused: MONTHLY_LIMIT
+I --method tools/call --tool-name confirm_transfer --tool-arg confirmation_token=<confirmation_token> --tool-arg 'otp="<code>"'
+I --method tools/call --tool-name quote_transfer --tool-arg send_amount=3000 --tool-arg beneficiary_id=ben_01   # refused: MONTHLY_LIMIT
 ```
 
 ## Deploy to AWS App Runner (optional)
 
-Hosting isn't needed to judge or run this project; this is for a public URL. Everything is in `infra/nuvio-remit.yaml` (CloudFormation) and `.github/workflows/deploy.yml` (GitHub OIDC, no stored AWS keys). Region `us-east-1`.
+Hosting isn't needed to judge or run this project; this is for a public URL. Everything is in `infra/nuvio-remit.yaml` (CloudFormation) and `.github/workflows/deploy.yml` (GitHub OIDC, no stored AWS keys). Region `us-east-1`. The stack has never been created, so these steps are written but not yet run end to end.
 
-1. **Create the stack** (console: CloudFormation → Create stack → upload `infra/nuvio-remit.yaml`), name `nuvio-remit`, `CreateService=false`, optionally `BudgetEmail`. It creates the ECR repo, generated secrets (`nuvio-remit/mcp-bearer-token`, `/sim-access-code`, `/dev-controls-code`), the App Runner roles and the GitHub deploy role.
+1. **Create the stack** (console: CloudFormation → Create stack → upload `infra/nuvio-remit.yaml`), name `nuvio-remit`, `CreateService=false`, optionally `BudgetEmail`. It creates the ECR repo, generated secrets (`nuvio-remit/mcp-bearer-token`, `/sim-access-code`, `/dev-controls-code`), the App Runner roles and the GitHub deploy role. If the account already has GitHub's OIDC provider, set `CreateGitHubOidcProvider=false` and `ExistingGitHubOidcProviderArn`. From a fork, set `GitHubOwner` and `GitHubRepo` (each `name@id`).
 2. **Set the repository variable** `AWS_DEPLOY_ROLE_ARN` (GitHub → Settings → Secrets and variables → Actions → Variables) to the stack output `GitHubDeployRoleArn`.
 3. **Push the first image**: run the *Deploy* workflow (Actions → Deploy → Run workflow). With no service yet it pushes `<sha>` and `live` to ECR and stops.
 4. **Create the service**: update the stack with `CreateService=true`. The output `ServiceUrl` is the public URL; the MCP endpoint is `<ServiceUrl>/mcp`.
-5. From then on every push to `main` that passes CI builds, pushes, starts an App Runner deployment, waits for it, and records per-tool p50/p95 latency from the (US-hosted) runner in the job summary, failing if any p95 exceeds 500 ms.
+5. From then on every push to `main` in this repository that passes CI (never a pull request or a fork) builds, pushes, starts an App Runner deployment, waits for it, and records p50/p95 latency for all 14 tools from the (US-hosted) runner in the job summary, failing if any p95 exceeds 500 ms.
 
 The service runs exactly one instance (min = max = 1) because the SQLite ledger lives on it; each deploy starts from the demo seed. Its role may call only the configured Bedrock model. The simulator access code and dev-controls code are in Secrets Manager.
 
@@ -170,7 +175,7 @@ The service runs exactly one instance (min = max = 1) because the SQLite ledger 
 | MCP server, Streamable HTTP, spec 2025-11-25 | yes | |
 | Bearer auth, token lifecycle, limit enforcement | yes | |
 | The assistant: Amazon Bedrock or any OpenAI-compatible model | yes | scripted mode when none is configured (real tools, fixed script) |
-| AWS App Runner deployment (optional) | yes | |
+| AWS App Runner deployment (optional) | template and workflow only; never deployed | |
 | Mid-market exchange rates | yes (Frankfurter) | |
 | Nuvio FX margin, fees, payout methods, KYC tier limits | | yes |
 | Card funding, ledger, screening, payout partner, UTRs | | yes |
@@ -188,7 +193,7 @@ The service runs exactly one instance (min = max = 1) because the SQLite ledger 
 1. **Quote:** what the recipient receives, the fee and the rate-lock countdown.
 2. **Read-back:** the token's 5-minute countdown. **Confirm** and **Not now** send "Yes." or "No." into the conversation, so consent stays with the assistant.
 3. **Code entry:** the code texted to the phone goes from the view to `confirm_transfer` through the host, never through the model.
-4. **Receipt:** it polls `track_transfer` until the money is paid out. Under review shows the RFI, never a reason.
+4. **Receipt:** it polls `track_transfer` every 3 seconds, for up to 10 minutes, until the money is paid out. Under review shows the RFI, never a reason.
 
 **In the simulator** (nothing to install): the page is an MCP Apps host. Send money and the view appears in the conversation. The protocol panel shows its `resources/read` and its own `tools/call` rows, marked "App view", with the code masked. Type the code from the phone toast into the view, or read it out as before.
 
@@ -236,12 +241,12 @@ The confirmation pattern behind every transfer here, as a small, dependency-free
 
 To report a vulnerability, see [SECURITY.md](SECURITY.md).
 
-- **The step-up code proves possession of the phone, not secrecy from bystanders.** It is texted to the registered phone and read aloud, so anyone nearby hears it. It still shows that whoever approves holds the customer's phone right now. It is single-use, lasts 5 minutes, names the amount and recipient, and three wrong tries void the confirmation. A production add-on should prefer an approval push in the provider's app.
+- **The step-up code proves possession of the phone, not secrecy from bystanders.** It is texted to the registered phone and read aloud, so anyone nearby hears it. It still shows that whoever approves holds the customer's phone right now. It is single-use, lasts 5 minutes and names the amount and recipient. Three wrong tries on one code void the confirmation, and at most three codes are sent for one confirmation. A production add-on should prefer an approval push in the provider's app.
 - **The transfer view holds the confirmation token, as the model does.** An MCP Apps view receives each linked tool's result, including the token it needs to send the code. Without the code from the phone, the token cannot move money. Typing the code into the view also keeps it out of the conversation, and away from anyone who would hear it read aloud.
 - **In the simulator, the access code is the demo customer's phone.** The simulated phone shows each step-up code, and `GET /sim/state` returns it, behind `SIM_ACCESS_CODE`. So on a hosted copy, whoever holds the access code can approve transfers on the demo ledger, as the customer can with their real phone. Nothing real moves; treat that code as the demo customer's credentials. Gating the phone behind another code would stop judges from finishing a transfer.
 - **The consent guard is the simulator's, not Alexa+'s.** The simulator refuses to spend a token in the turn that issued it. Real Alexa+ has no such guard, so there the server-side code is the defence against a model that prepares and confirms in one breath: the code is never in any tool result, so the model cannot supply it.
-- **`cancel_transfer` has no step-up, by design.** It still needs a read-back preview and its own single-use token, but it can only refund the full amount to the sender's own card, before payout. It cannot send money anywhere new.
-- **Everything else is enforced server-side for every client:** quotes lock the rate, tokens are single-use, expire in 5 minutes and are bound to the authenticated caller (never a session), limits are re-checked at confirm, and refusals are structured. One demo customer sits behind one Bearer token; production would use account linking (OAuth 2.1 with PKCE). The public simulator is metered (access code, per-IP limits, daily model and voice caps). Logs show token prefixes only, and codes are stored only as salted hashes.
+- **`cancel_transfer` has no step-up, by design.** It still needs a read-back preview and its own single-use token, but it can only refund the full amount to the sender's own card, before the transfer goes to the payout partner. It cannot send money anywhere new.
+- **Everything else is enforced server-side for every client:** quotes lock the rate, tokens are single-use, expire in 5 minutes and are bound to the authenticated caller (never a session), limits are re-checked at confirm, and refusals are structured. One demo customer sits behind one Bearer token; production would use account linking (OAuth 2.1 with PKCE). The public simulator is metered (access code, per-IP limits, daily model and voice caps). Logs show token prefixes only, and codes are stored only as salted hashes (the simulated phone's outbox keeps each text as sent).
 - **Out of scope:** voice biometrics, device signals, fraud scoring and real sanctions screening (modelled as "under review", with no reason ever given).
 
 ## Before this moves real money
@@ -252,7 +257,7 @@ The ledger is simulated, and these are deliberate shortcuts that a production ve
 - **References.** `NUV-` references are sequential (`MAX + 1`). Every lookup is scoped to the user, so this leaks nothing here, but production references should be random or keyed.
 - **One server per request.** Stateless Streamable HTTP builds a new `McpServer`, with its 14 tools and one resource, for each `POST /mcp`. That is fine at demo traffic; at scale, build it once per process.
 - **Quotes don't reserve limit.** Confirm re-checks limits, so a second quote that no longer fits is refused safely, but `get_pending` can still list it as open. Production should re-check open quotes, or reserve limit for them.
-- **Document upload.** Every document step ends with "upload it in the Nuvio app". A document must never pass through the model, as the step-up code never does, so the upload goes straight to the server. On a voice-only device that means a single-use link texted to the phone, tied to the request; on a screen it is an upload box in the transfer view. MCP's URL-mode elicitation (spec 2025-11-25) is the protocol-native way, if the host supports it. It also needs a document status in `track_transfer` (requested, received, being checked, accepted or rejected) and a table of what each purpose and amount requires: today only a property purchase, proof of funds and a higher tier ask for anything.
+- **Document upload.** Every document step ends with "upload it in the Nuvio app". A document must never pass through the model, as the step-up code never does, so the upload goes straight to the server. On a voice-only device that means a single-use link texted to the phone, tied to the request; on a screen it is an upload box in the transfer view. MCP's URL-mode elicitation (spec 2025-11-25) is the protocol-native way, if the host supports it. It also needs a document status in `track_transfer` (requested, received, being checked, accepted or rejected) and a table of what each purpose and amount requires: today only a property purchase, proof of funds, a higher tier and a review's request for information ask for anything.
 - **Everything the simulation stands in for:** account linking (OAuth 2.1 with PKCE) instead of one Bearer token, Postgres instead of SQLite on one instance, a real SMS or push provider (preferably an in-app approval push), real sanctions screening, and a compliance review of every spoken string.
 
 ## License
