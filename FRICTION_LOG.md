@@ -269,3 +269,12 @@ Severity: **blocker** (stopped work), **major** (cost more than 30 min or needed
 - **Severity:** minor (no wrong result once noticed; two misreadings on the way)
 - **Workaround:** Read the offset on each timestamp (or set the CLI's `cli_timestamp_format` to `wire`, which prints timestamps as the service sent them), and print `Unit` with every statistic.
 - **Suggestion:** AWS CLI: say in the `get-metric-statistics` help that the default `iso8601` format converts to local time. CloudWatch: use one latency unit across services, or put the unit beside each metric in the console's metric picker.
+
+### 2026-10-20 · MCP Inspector CLI 2.11.0 (`npx @modelcontextprotocol/inspector --cli`) · A numeric-looking `--tool-arg` value is sent as a number
+- **Task:** Re-running the README's send flow on a fresh clone, as an independent check of every README claim.
+- **Steps:** `--method tools/call --tool-name confirm_transfer --tool-arg confirmation_token=<token> --tool-arg otp=482913`, with the README's `I="npx ..."` and `eval $I` form.
+- **Expected:** `otp` arrives as the string `"482913"`, as typed, since the tool's input schema says string.
+- **Actual:** The CLI runs `JSON.parse` on every `--tool-arg` value, so `482913` became a number and the server answered `MCP error -32602: Input validation error: ... expected string, received number at otp`. A code with a leading zero (`012345`) is not valid JSON, so it stayed a string and worked, which made the failure look random: about 9 codes in 10 failed. The README's `eval` form also strips one layer of quotes, so quoting the value there was not enough.
+- **Severity:** major (the README's documented send flow failed at its last step for most codes)
+- **Workaround:** A shell function instead of `eval`, `I() { npx ... "$@"; }`, and the code as a JSON string: `--tool-arg 'otp="482913"'`. The README now shows this, and the whole block was re-run as written.
+- **Suggestion:** Inspector: coerce each `--tool-arg` to the type the tool's `inputSchema` declares (it has the schema from `tools/list`), or document the JSON parsing in `--help` with a string example.
