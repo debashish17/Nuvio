@@ -28,7 +28,7 @@ If a take runs long, cut beat 7 first.
 **Show**
 
 - Title card for two seconds: **Nuvio Remit · an Alexa+ add-on**.
-- The simulator at rest: the orb breathing, the banner "Simulated ledger: no real funds move" in view, panels hidden (press `H`).
+- The simulator at rest: the orb breathing, the banner "Simulated ledger: no real funds move" in view, the ledger strip and the protocol panel hidden (press `H` and the **Protocol** button).
 
 | Who | Line |
 | --- | --- |
@@ -38,7 +38,7 @@ If a take runs long, cut beat 7 first.
 
 **Show**
 
-- Panels back on (`H`). The protocol panel lists the session's 14 tools.
+- Both back on (`H` and **Protocol**). The protocol panel lists the session's 14 tools.
 - Lower third: **Alexa+ add-on · MCP server · 14 tools**.
 - Optional: a three-second cut to the README's "Built for Alexa+" table.
 
@@ -147,7 +147,7 @@ If a take runs long, cut beat 7 first.
 1. `pnpm db:seed`, then `pnpm dev`. It builds the transfer view too.
 2. Open `http://localhost:3000/?dev=1`, then enter the access code and the dev-controls code from your `.env`.
 3. Blue theme, Voice on. Use a 1920×1080 window at 125% zoom so the text reads on YouTube.
-4. Minimise the dev drawer between uses. Hide the panels with `H` for clean shots, and show them for beats 2 to 6.
+4. Minimise the dev drawer between uses. For clean shots, `H` hides the ledger strip and the **Protocol** button hides the protocol panel; show both for beats 2 to 6.
 
 **Drive the takes**
 

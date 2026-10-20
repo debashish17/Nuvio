@@ -57,7 +57,7 @@ Requests flow top to bottom; the only outbound network call is the cached rate f
 
 ## Tool contract
 
-Twelve tools, one domain, two money-moving tools behind one gate. The `description` strings below are the product copy the model reads to pick a tool: ship them verbatim and tune only after watching the simulator mis-pick.
+Fourteen tools, one domain, two money-moving tools behind one gate. The `description` strings below are the product copy the model reads to pick a tool: ship them verbatim and tune only after watching the simulator mis-pick.
 
 | # | Tool | Description (what the model reads) | Writes state |
 | --- | --- | --- | --- |
