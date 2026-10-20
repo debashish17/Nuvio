@@ -185,7 +185,7 @@ One section per tool, API, SDK or service used, as the Devpost submission requir
 | Playwright (Chrome) | End-to-end tests in CI: Play all with the transfer views, and a code typed into the view | No issues worth reporting |
 | Express 5 | The HTTP server | `res.sendFile` returns 404 for a path inside a dot-directory unless `dotfiles: "allow"` is set |
 | TypeScript and typescript-eslint | Strict ESM throughout | `latest` TypeScript was outside typescript-eslint's supported range |
-| MCP Inspector, MCPJam | Testing the server and the view in other clients | MCP Inspector worked first time; MCPJam's local inspector needs an account sign-in |
+| MCP Inspector, MCPJam | Testing the server and the view in other clients | MCP Inspector worked first time, though its CLI reads every `--tool-arg` as JSON, so a 6-digit code arrives as a number unless it is quoted; MCPJam's local inspector needs an account sign-in |
 
 ---
 

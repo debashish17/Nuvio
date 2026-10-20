@@ -22,9 +22,14 @@ concurrency:
 
 jobs:
   deploy:
+    # Only a CI run for a push to this repository deploys. The workflow_run branches filter also
+    # matches a pull request from a fork's own main, and that code must never run with the deploy role.
     if: >-
       vars.AWS_DEPLOY_ROLE_ARN != '' &&
-      (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+      (github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+      github.event.workflow_run.event == 'push' &&
+      github.event.workflow_run.head_repository.full_name == github.repository))
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
@@ -96,6 +101,8 @@ jobs:
         if: steps.apprunner.outputs.deployed == 'true'
         env:
           MCP_URL: ${{ steps.apprunner.outputs.url }}/mcp
+        # An explicit bash runs with -o pipefail, so a p95 over budget fails the step through the tee.
+        shell: bash
         run: |
           token=$(aws secretsmanager get-secret-value --secret-id "${STACK}/mcp-bearer-token" \
             --query SecretString --output text)

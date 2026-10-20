@@ -86,7 +86,7 @@ export function maskCodes<T>(value: T): T {
   const json = JSON.stringify(value).replace(
     OTP_ARG,
     (_m, open: string, code: string, close: string) => {
-      return `${open}${code.replace(/D/g, "").slice(0, 2)}••••${close}`;
+      return `${open}${code.replace(/\D/g, "").slice(0, 2)}••••${close}`;
     },
   );
   return JSON.parse(json) as T;

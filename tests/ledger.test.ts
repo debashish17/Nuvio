@@ -239,7 +239,6 @@ describe("LedgerService.cancel", () => {
     expect(core.ledger.cancelPreview(USER_ID, ref, CALLER)).toMatchObject({
       refused: { code: "CANCEL_WINDOW_CLOSED", status: "SENT_TO_PARTNER" },
     });
-    expect(core.ledger.cancellable(ref)).toBe(false);
     expect(core.ledger.cancelPreview(USER_ID, "NUV-240119", CALLER)).toMatchObject({
       refused: { code: "CANCEL_WINDOW_CLOSED", status: "PAID_OUT" },
     });

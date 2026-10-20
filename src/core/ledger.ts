@@ -234,12 +234,6 @@ export class LedgerService {
 
   // ---------------------------------------------------------------- cancel
 
-  cancellable(ref: string): boolean {
-    const row = this.db.prepare("SELECT status FROM transfers WHERE ref = ?").get(ref) as
-      { status: TransferStatus } | undefined;
-    return row ? CANCELLABLE.has(row.status) : false;
-  }
-
   /** Step 1: the preview to read back, and a cx_ token valid for 5 minutes. */
   cancelPreview(userId: string, ref: string, callerId: string) {
     const t = this.find(userId, ref);
