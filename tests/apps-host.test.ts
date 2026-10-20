@@ -14,7 +14,7 @@ import { createApp } from "../src/server/app.js";
 import { ChatService, toBedrockTools, type ChatReply } from "../src/server/sim/chat.js";
 import { FrameStore, viewCsp } from "../src/server/sim/frames.js";
 import { DailyBudget } from "../src/server/sim/guards.js";
-import { McpRelay } from "../src/server/sim/relay.js";
+import { maskCodes, McpRelay } from "../src/server/sim/relay.js";
 import { ScriptedChat, type ChatEngine } from "../src/server/sim/scripted.js";
 import { liveFetch, seededDb, silentLogger, TEST_BEARER, testClock } from "./helpers.js";
 
@@ -301,5 +301,13 @@ describe("host pieces", () => {
       },
     ]);
     expect(tools.map((t) => t.toolSpec?.name)).toEqual(["a", "c"]);
+  });
+});
+
+describe("protocol panel masking", () => {
+  it("keeps at most two digits of a code given with spaces or in words", () => {
+    expect(maskCodes({ otp: "4 8 2 9 1 3" })).toEqual({ otp: "48••••" });
+    expect(maskCodes({ otp: "four eight 2 9 1 3" })).toEqual({ otp: "29••••" });
+    expect(maskCodes({ otp: "482913", note: "kept" })).toEqual({ otp: "48••••", note: "kept" });
   });
 });
