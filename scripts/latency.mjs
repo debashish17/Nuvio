@@ -28,6 +28,8 @@ const CALLS = [
   ["get_transfer_history", { months: 3 }],
   ["check_limits", {}],
   ["set_rate_alert", { target: 0, direction: "above" }], // ALERT_TARGET_INVALID
+  ["get_help", { topic: "overview" }],
+  ["get_pending", {}],
 ];
 
 let id = 0;
