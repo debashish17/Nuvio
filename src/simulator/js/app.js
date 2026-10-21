@@ -759,6 +759,14 @@ for (const b of [$("#orbBtn"), $("#barMic")]) {
 }
 const typing = (t) =>
   t instanceof HTMLInputElement || t instanceof HTMLTextAreaElement || t?.isContentEditable;
+// Space presses a button or opens a picker only when the keyboard got there (Tab). Chrome also
+// focuses a button on click, and Space must still talk then, as the hint says.
+let tabbed = false;
+document.addEventListener("pointerdown", () => (tabbed = false), true);
+document.addEventListener("keydown", (e) => e.key === "Tab" && (tabbed = true), true);
+const keyboardControl = (t) =>
+  tabbed && (t instanceof HTMLButtonElement || t instanceof HTMLSelectElement);
+let spaceTalk = false;
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     S.speakGen++;
@@ -766,21 +774,20 @@ document.addEventListener("keydown", (e) => {
     stopListen();
     return;
   }
-  if (
-    typing(e.target) ||
-    e.target instanceof HTMLButtonElement ||
-    e.ctrlKey ||
-    e.metaKey ||
-    e.altKey
-  )
-    return;
-  if (e.code === "Space" && !e.repeat) {
+  if (e.defaultPrevented || typing(e.target) || e.ctrlKey || e.metaKey || e.altKey) return;
+  if (e.code === "Space") {
+    if (keyboardControl(e.target)) return;
     e.preventDefault();
+    if (e.repeat) return;
+    spaceTalk = true;
     press();
   } else if (e.key === "h" || e.key === "H") setFocus(!body.classList.contains("focus"));
 });
 document.addEventListener("keyup", (e) => {
-  if (e.code === "Space" && !typing(e.target)) release();
+  if (e.code !== "Space" || !spaceTalk) return;
+  spaceTalk = false;
+  e.preventDefault(); // no click on a button the mouse left focused
+  release();
 });
 
 /* ---------- demo player: the server's demo beats, one at a time or all in a row ---------- */
@@ -995,6 +1002,7 @@ async function connect() {
     const t = await api.tools();
     $("#gate").hidden = true;
     $("#gateCode").value = "";
+    $("#gateCode").blur(); // hidden, it would keep the focus and swallow Space as typing
     S.connected = true;
     proto.classList.remove("down");
     $("#pStatus").textContent = "Protocol · connected";

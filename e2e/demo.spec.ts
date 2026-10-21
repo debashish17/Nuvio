@@ -77,3 +77,62 @@ test("a code typed into the MCP Apps view confirms, never through the model", as
   await expect(row).toHaveCount(1);
   await expect(page.locator("#pFeed")).not.toContainText(code);
 });
+
+test("Space talks right after the access code and after a click, but not while typing", async ({
+  page,
+}) => {
+  // A stand-in for Chrome's speech recognition: it listens until stopped and hears nothing.
+  await page.addInitScript(() => {
+    class FakeRecognition {
+      onend: (() => void) | null = null;
+      onresult = null;
+      onerror = null;
+      lang = "";
+      interimResults = false;
+      continuous = false;
+      start() {}
+      stop() {
+        setTimeout(() => this.onend?.(), 0);
+      }
+    }
+    Object.assign(globalThis, {
+      SpeechRecognition: FakeRecognition,
+      webkitSpeechRecognition: FakeRecognition,
+    });
+  });
+  const orb = page.locator("#orbwrap");
+  const talks = async () => {
+    await page.keyboard.press("Space");
+    await expect(orb).toHaveClass(/\btap\b/);
+    await page.keyboard.press("Escape");
+    await expect(orb).not.toHaveClass(/\b(tap|hold)\b/);
+  };
+
+  // Submitted with Enter, so the code field had the focus when the gate hid.
+  await page.goto("/");
+  await page.locator("#gateCode").fill(ACCESS_CODE);
+  await page.locator("#gateCode").press("Enter");
+  await expect(page.locator("#pStatus")).toContainText("connected");
+  await talks();
+
+  // Chrome leaves a clicked button focused; Space still talks and doesn't click it again.
+  const proto = page.locator("#protoBtn");
+  await proto.click();
+  const pressed = await proto.getAttribute("aria-pressed");
+  await talks();
+  await expect(proto).toHaveAttribute("aria-pressed", pressed ?? "");
+
+  // A button reached with Tab keeps Space.
+  await proto.focus();
+  await page.keyboard.press("Shift+Tab");
+  await page.keyboard.press("Tab");
+  await page.keyboard.press("Space");
+  await expect(proto).not.toHaveAttribute("aria-pressed", pressed ?? "");
+  await expect(orb).not.toHaveClass(/\b(tap|hold)\b/);
+
+  // Typing in the message box types a space.
+  await page.locator("#msg").click();
+  await page.keyboard.press("Space");
+  await expect(page.locator("#msg")).toHaveValue(" ");
+  await expect(orb).not.toHaveClass(/\b(tap|hold)\b/);
+});
