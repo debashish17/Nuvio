@@ -278,3 +278,21 @@ Severity: **blocker** (stopped work), **major** (cost more than 30 min or needed
 - **Severity:** major (the README's documented send flow failed at its last step for most codes)
 - **Workaround:** A shell function instead of `eval`, `I() { npx ... "$@"; }`, and the code as a JSON string: `--tool-arg 'otp="482913"'`. The README now shows this, and the whole block was re-run as written.
 - **Suggestion:** Inspector: coerce each `--tool-arg` to the type the tool's `inputSchema` declares (it has the schema from `tools/list`), or document the JSON parsing in `--help` with a string example.
+
+### 2026-10-21 · AWS App Runner (availability change notice) · "Closed to new customers", yet an account that had never used it could create a service
+- **Task:** Hosting the simulator for the judging period from `infra/nuvio-remit.yaml`.
+- **Steps:** Read the App Runner developer guide before deploying. Every page now opens with "AWS App Runner is no longer open to new customers. Existing customers can continue to use the service as normal", and the notice gives the date (April 30, 2026) and recommends Amazon ECS Express Mode.
+- **Expected:** A definition of "existing customer" (an account that has run a service? one in the same organization?), or a clear error when an account that doesn't qualify calls the API.
+- **Actual:** Neither. This account had never created an App Runner resource. A free `create-auto-scaling-configuration` succeeded, and so did the stack update that created the service. Until then, it was unclear whether the template could deploy at all, the day before the submission deadline.
+- **Severity:** minor (it worked; the uncertainty cost a planning detour and a probe)
+- **Workaround:** Probe with a resource that costs nothing (an auto-scaling configuration), delete it, then deploy. ECS Express Mode was the fallback.
+- **Suggestion:** App Runner: say in the notice who counts as an existing customer, and offer an API or console flag that tells an account whether it can create services.
+
+### 2026-10-21 · AWS CLI v2 in Git Bash (`aws logs describe-log-groups --log-group-name-prefix /aws/apprunner/...`) · The log group name is rewritten into a Windows path
+- **Task:** Reading the App Runner service's startup log after the first deploy.
+- **Steps:** `aws logs describe-log-groups --log-group-name-prefix /aws/apprunner/nuvio-remit` in Git Bash on Windows.
+- **Expected:** The log groups under that prefix.
+- **Actual:** `InvalidParameterException: Value at 'logGroupNamePrefix' failed to satisfy constraint: Member must satisfy regular expression pattern`. Git Bash (MSYS) converts any argument that starts with `/` into a Windows path (`C:/Program Files/Git/aws/...`) before the CLI sees it, and the error doesn't echo the value it got, so the cause isn't visible.
+- **Severity:** minor
+- **Workaround:** `MSYS_NO_PATHCONV=1` before the command (or a leading `//`).
+- **Suggestion:** AWS CLI: include the rejected value in client-side validation errors, and mention MSYS path conversion in the Windows install notes.

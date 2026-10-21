@@ -84,7 +84,7 @@ One section per tool, API, SDK or service used, as the Devpost submission requir
 
 ## AWS App Runner and CloudFormation (with GitHub Actions OIDC)
 
-- **Used for:** a deployable setup written as code, which we never created as a stack: the hackathon doesn't require hosting (judges run the project locally) and our budget is small. It has two parts:
+- **Used for:** the hosted copy judges can try (https://xqnsayyu6m.us-east-1.awsapprunner.com), deployed entirely from code. It has two parts:
   - one CloudFormation template: an ECR repository, generated secrets, an App Runner service with a single instance, IAM roles with managed policies, and a budget alarm
   - a GitHub Actions deploy through OIDC with no stored AWS keys, plus a per-tool latency check from a US runner
 - **Worked well:**
@@ -94,8 +94,9 @@ One section per tool, API, SDK or service used, as the Devpost submission requir
   - GitHub OIDC needed no long-lived keys.
 - **Needs work:**
   - A service can't be created before its image exists in ECR, so the template needs a two-pass bootstrap: `CreateService=false`, push an image, then `true`.
+  - AWS closed App Runner to new customers on April 30, 2026, but the notice doesn't say who counts as an existing customer. Our account had never run a service, and creating one still worked; we checked first with a free auto-scaling configuration.
   - A minimum of one provisioned instance bills for idle memory around the clock (about $2.50–5 a month at the smallest sizes). That is noticeable on a hobby or hackathon budget, and a scale-to-zero option would help.
-- **Onboarding (zero to hello world):** the template reference is thorough, but the bootstrap order took some working out. We validated the template but never created the stack, so we never reached a deployed hello world.
+- **Onboarding (zero to hello world):** the template reference is thorough, but the bootstrap order took some working out. Once written, it ran first time on October 21, 2026: about nine minutes from an empty account to a live URL (stack 45 seconds, first image through the Deploy workflow 2 minutes, then the service 3 minutes).
 - **Would build with it again:** yes, for small containerised services. Secrets, scaling and keyless deploys fit in one template.
 
 ## AWS CLI (and the Agent Toolkit for AWS)
