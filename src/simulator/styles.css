@@ -1615,6 +1615,9 @@ body.noproto .proto {
   font: inherit;
   cursor: pointer;
   outline: 0;
+  /* A dark native popup: otherwise Windows Chrome shows a white margin around the dark options,
+     since it often sizes the popup larger than the list (more so at page zoom above 100%). */
+  color-scheme: dark;
 }
 .tb.sel select option,
 .tb.sel select optgroup {
