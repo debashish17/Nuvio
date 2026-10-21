@@ -3,8 +3,6 @@
 [![CI](https://github.com/debashish17/Nuvio/actions/workflows/ci.yml/badge.svg)](https://github.com/debashish17/Nuvio/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/github/license/debashish17/Nuvio)](LICENSE)
 
-Formerly 'Acme Remit' (working name).
-
 > **Simulated ledger — no real funds move.** Mid-market exchange rates are live (ECB via Frankfurter, cached; AED/INR derived from USD/INR at the 3.6725 AED/USD peg); Nuvio pricing, limits, card funding, screening and payout are simulated.
 
 A self-hosted [MCP](https://modelcontextprotocol.io) server (spec 2025-11-25, Streamable HTTP) that lets Alexa+ handle UAE→India remittances safely, plus a web simulator that stands in for Alexa+.
