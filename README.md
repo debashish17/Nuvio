@@ -13,6 +13,8 @@ Built for the **Alexa+ track** of [Build, Ship, Shape: Amazon Developer Hackatho
 
 > **The simulator is the demo.** Amazon's Alexa+ toolchain (the Alexa+ CLI, MCP Toolkit and web simulator) is not available to hackathon participants, so this repo ships its own web simulator that stands in for Alexa+ and calls the MCP server exactly as Alexa+ would. Judges can run everything locally with **nothing but Node** (and the pnpm that comes with it): no AWS account, no API key (see [Run it locally with no AWS account](#run-it-locally-with-no-aws-account)).
 
+> **Or try the hosted copy:** https://xqnsayyu6m.us-east-1.awsapprunner.com, live on AWS App Runner through the judging period (to November 20, 2026), with Amazon Bedrock (Nova 2 Lite) and Amazon Polly's voice. The access code is in the Devpost submission. See [The hosted copy](#the-hosted-copy).
+
 ## Built for Alexa+
 
 | Alexa+ track | In this repo |
@@ -108,6 +110,14 @@ The voice is the browser's own, or, when AWS credentials are available, Amazon P
 
 For recording, `/?dev=1` adds dev controls (advance the ticker, release the held transfer, fire a rate alert, reset the demo data). They need `DEV_CONTROLS_CODE`, and `/dev/*` answers 404 when it is unset. With the dev code entered, chat turns skip the per-IP limit (the daily Bedrock cap still applies). Press H to hide the ledger strip; the Protocol button hides the protocol panel.
 
+### The hosted copy
+
+https://xqnsayyu6m.us-east-1.awsapprunner.com runs this repository's `main` on AWS App Runner (see [Deploy](#deploy-to-aws-app-runner-optional)), with the live model and Polly's voice. Open it and enter the access code from the Devpost submission. For the controls the demo script uses (advance the ticker to Paid out, fire a rate alert, release the held transfer, reset the demo data), open `https://xqnsayyu6m.us-east-1.awsapprunner.com/?dev=1` and enter the dev-controls code from the same place.
+
+- **Everyone shares one simulated ledger.** Opening the page after 20 quiet minutes, or on a new day in Dubai, reloads the demo data (`SIM_AUTO_RESET_MINUTES=20`), so each visitor starts from the seed with today's dates. **Reset demo data** in the dev controls starts over at any time.
+- **Daily caps** keep a public URL's bill bounded: 300 assistant calls and 40,000 voice characters a day (UTC). When the voice allowance is used, the page switches to the browser's voice.
+- **`/mcp` needs the Bearer secret**, which isn't shared. To call the tools yourself (curl, MCP Inspector), run the server locally as above.
+
 ### Conversation evals
 
 ```bash
@@ -158,7 +168,7 @@ I --method tools/call --tool-name quote_transfer --tool-arg send_amount=3000 --t
 
 ## Deploy to AWS App Runner (optional)
 
-Hosting isn't needed to judge or run this project; this is for a public URL. Everything is in `infra/nuvio-remit.yaml` (CloudFormation) and `.github/workflows/deploy.yml` (GitHub OIDC, no stored AWS keys). Region `us-east-1`. The stack has never been created, so these steps are written but not yet run end to end.
+Hosting isn't needed to judge or run this project; this is for a public URL. Everything is in `infra/nuvio-remit.yaml` (CloudFormation) and `.github/workflows/deploy.yml` (GitHub OIDC, no stored AWS keys). Region `us-east-1`. These steps created [the hosted copy](#the-hosted-copy) on October 21, 2026, in about nine minutes from an empty account.
 
 1. **Create the stack** (console: CloudFormation → Create stack → upload `infra/nuvio-remit.yaml`), name `nuvio-remit`, `CreateService=false`, optionally `BudgetEmail`. It creates the ECR repo, generated secrets (`nuvio-remit/mcp-bearer-token`, `/sim-access-code`, `/dev-controls-code`), the App Runner roles and the GitHub deploy role. If the account already has GitHub's OIDC provider, set `CreateGitHubOidcProvider=false` and `ExistingGitHubOidcProviderArn`. From a fork, set `GitHubOwner` and `GitHubRepo` (each `name@id`).
 2. **Set the repository variable** `AWS_DEPLOY_ROLE_ARN` (GitHub → Settings → Secrets and variables → Actions → Variables) to the stack output `GitHubDeployRoleArn`.
@@ -166,7 +176,7 @@ Hosting isn't needed to judge or run this project; this is for a public URL. Eve
 4. **Create the service**: update the stack with `CreateService=true`. The output `ServiceUrl` is the public URL; the MCP endpoint is `<ServiceUrl>/mcp`.
 5. From then on every push to `main` in this repository that passes CI (never a pull request or a fork) builds, pushes, starts an App Runner deployment, waits for it, and records p50/p95 latency for all 14 tools from the (US-hosted) runner in the job summary, failing if any p95 exceeds 500 ms.
 
-The service runs exactly one instance (min = max = 1) because the SQLite ledger lives on it; each deploy starts from the demo seed. Its role may call only the configured Bedrock model. The simulator access code and dev-controls code are in Secrets Manager.
+The service runs exactly one instance (min = max = 1) because the SQLite ledger lives on it; each deploy starts from the demo seed, and `AutoResetMinutes` (default 20) gives each new visitor fresh demo data. The template's defaults are 0.25 vCPU and 0.5 GB, with daily caps of 300 assistant calls and 40,000 Polly characters. Its role may call only the configured Bedrock model. The simulator access code and dev-controls code are in Secrets Manager. AWS closed App Runner to new customers on April 30, 2026, though this account, which had never used it, could still create a service; an account that can't can run the same image on Amazon ECS Express Mode.
 
 ## Real vs simulated
 
@@ -175,7 +185,7 @@ The service runs exactly one instance (min = max = 1) because the SQLite ledger 
 | MCP server, Streamable HTTP, spec 2025-11-25 | yes | |
 | Bearer auth, token lifecycle, limit enforcement | yes | |
 | The assistant: Amazon Bedrock or any OpenAI-compatible model | yes | scripted mode when none is configured (real tools, fixed script) |
-| AWS App Runner deployment (optional) | template and workflow only; never deployed | |
+| AWS App Runner deployment (optional) | yes: [the hosted copy](#the-hosted-copy), through the judging period | |
 | Mid-market exchange rates | yes (Frankfurter) | |
 | Nuvio FX margin, fees, payout methods, KYC tier limits | | yes |
 | Card funding, ledger, screening, payout partner, UTRs | | yes |

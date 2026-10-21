@@ -1,5 +1,6 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import type { Request, RequestHandler } from "express";
+import { dubaiDate } from "../../core/time.js";
 
 /**
  * Guards for /sim/* and /dev/* on a public URL: an access code, per-IP rate limits and a daily
@@ -102,5 +103,43 @@ export class DailyBudget {
 
   get remaining(): number {
     return Math.max(0, this.limit - this.used);
+  }
+}
+
+/**
+ * Keeps a hosted demo fresh for each visitor: opening the page after `idleMs` with no activity, or
+ * on a new day in Dubai, reloads the demo data. The seed's dates are relative to the day it loads,
+ * and every visitor shares one ledger, so nobody inherits stale dates or an earlier visitor's
+ * sends. `idleMs` 0 turns it off.
+ */
+export class DemoFreshness {
+  private lastActive = Number.NEGATIVE_INFINITY;
+  private day = "";
+
+  constructor(
+    private readonly idleMs: number,
+    private readonly reseed: () => void,
+    private readonly now: () => Date = () => new Date(),
+  ) {}
+
+  get minutes(): number {
+    return this.idleMs / 60_000;
+  }
+
+  /** A visitor did something: a chat turn, a view's call, a dev control. */
+  touch(): void {
+    this.lastActive = this.now().getTime();
+  }
+
+  /** On page load. True when it reloaded the demo data. */
+  refresh(): boolean {
+    if (this.idleMs <= 0) return false;
+    const now = this.now();
+    const today = dubaiDate(now);
+    if (today === this.day && now.getTime() - this.lastActive < this.idleMs) return false;
+    this.reseed();
+    this.day = today;
+    this.lastActive = now.getTime();
+    return true;
   }
 }

@@ -20,7 +20,7 @@ import {
   toBedrockTools,
   type ConverseFn,
 } from "../src/server/sim/chat.js";
-import { DailyBudget } from "../src/server/sim/guards.js";
+import { DailyBudget, DemoFreshness } from "../src/server/sim/guards.js";
 import { SYSTEM_PROMPT } from "../src/server/sim/prompt.js";
 import { McpRelay, redactTokens } from "../src/server/sim/relay.js";
 import { liveFetch, seededDb, silentLogger, TEST_BEARER, testClock } from "./helpers.js";
@@ -115,6 +115,9 @@ async function start(
     devCode?: string | undefined;
     budget?: number;
     modelId?: string;
+    /** SIM_AUTO_RESET_MINUTES, on its own clock. */
+    freshMinutes?: number;
+    clock?: () => Date;
   } = {},
 ) {
   const card = new MockCard();
@@ -136,6 +139,11 @@ async function start(
     systemPrompt: SYSTEM_PROMPT,
     budget,
   });
+  const reseed = () => {
+    seed(core.db);
+    chat.clear();
+    relay.reset();
+  };
   const app = createApp({
     bearerToken: TEST_BEARER,
     core,
@@ -145,11 +153,10 @@ async function start(
       budget,
       accessCode: "accessCode" in opts ? opts.accessCode : SIM,
       devCode: "devCode" in opts ? opts.devCode : DEV,
-      reseed: () => {
-        seed(core.db);
-        chat.clear();
-        relay.reset();
-      },
+      reseed,
+      freshness: opts.freshMinutes
+        ? new DemoFreshness(opts.freshMinutes * 60_000, reseed, opts.clock)
+        : undefined,
     },
   });
   const server = app.listen(0, "127.0.0.1");
@@ -433,6 +440,51 @@ describe("/dev controls", () => {
     expect((await sim(app).dev("/dev/reset")).body).toEqual({ reset: true });
     expect(core.ledger.track(USER_ID, "NUV-240120")).toMatchObject({ status: "ON_HOLD" });
     expect(core.alerts.list(USER_ID)).toEqual([]);
+  });
+});
+
+describe("fresh demo data for each visitor", () => {
+  it("reloads on the first page load, after a quiet spell and on a new day in Dubai", () => {
+    const clock = testClock(new Date("2026-11-10T10:00:00Z"));
+    const reseed = vi.fn();
+    const fresh = new DemoFreshness(30 * 60_000, reseed, clock);
+    expect(fresh.refresh()).toBe(true); // the first visitor
+    clock.advance(20 * 60_000);
+    expect(fresh.refresh()).toBe(false); // 20 quiet minutes
+    clock.advance(15 * 60_000);
+    expect(fresh.refresh()).toBe(true); // 35 quiet minutes
+    clock.advance(25 * 60_000);
+    fresh.touch();
+    clock.advance(25 * 60_000);
+    expect(fresh.refresh()).toBe(false); // active 25 minutes ago
+    clock.set(new Date("2026-11-10T19:59:00Z"));
+    fresh.touch();
+    clock.set(new Date("2026-11-10T20:00:00Z")); // midnight in Dubai
+    expect(fresh.refresh()).toBe(true);
+    expect(reseed).toHaveBeenCalledTimes(3);
+  });
+
+  it("never reloads at 0 minutes, the default", async () => {
+    const reseed = vi.fn();
+    expect(new DemoFreshness(0, reseed).refresh()).toBe(false);
+    expect(reseed).not.toHaveBeenCalled();
+    const { app } = await start();
+    expect((await sim(app).get("/sim/tools")).body.fresh_demo).toBe(false);
+  });
+
+  it("a page load after a quiet spell gives the next visitor the seed again", async () => {
+    const clock = testClock();
+    const { app, core } = await start({ freshMinutes: 30, clock });
+    expect((await sim(app).get("/sim/tools")).body.fresh_demo).toBe(true);
+    await sim(app).dev("/dev/release"); // the first visitor acts
+    clock.advance(10 * 60_000);
+    expect((await sim(app).get("/sim/tools")).body.fresh_demo).toBe(false);
+    expect(core.ledger.track(USER_ID, "NUV-240120")).toMatchObject({ status: "SCREENING" });
+
+    clock.advance(31 * 60_000);
+    expect((await sim(app).get("/sim/state")).status).toBe(200); // an idle tab polling
+    expect((await sim(app).get("/sim/tools")).body.fresh_demo).toBe(true);
+    expect(core.ledger.track(USER_ID, "NUV-240120")).toMatchObject({ status: "ON_HOLD" });
   });
 });
 

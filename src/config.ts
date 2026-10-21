@@ -16,6 +16,9 @@ const ConfigSchema = z.object({
   SIM_ACCESS_CODE: z.string().min(8, "must be at least 8 characters").optional(),
   DEV_CONTROLS_CODE: z.string().min(8, "must be at least 8 characters").optional(),
   SIM_DAILY_BEDROCK_CALLS: z.coerce.number().int().min(1).default(500),
+  // A hosted demo: opening the page after this many quiet minutes, or on a new day in Dubai,
+  // reloads the demo data. 0 (the default) never does, so a local run keeps its ledger.
+  SIM_AUTO_RESET_MINUTES: z.coerce.number().int().min(0).default(0),
   // The assistant's voice in the simulator: an Amazon Polly voice id, or "none" for the browser's.
   POLLY_VOICE: z.string().min(1).default("Kajal"),
   POLLY_ENGINE: z.enum(["standard", "neural", "generative", "long-form"]).default("neural"),
