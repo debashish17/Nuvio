@@ -15,6 +15,7 @@ describe("parseConfig", () => {
       DB_PATH: "./data/nuvio-remit.db",
       TICKER_MS: 15000,
       SIM_DAILY_BEDROCK_CALLS: 500,
+      SIM_AUTO_RESET_MINUTES: 0,
       POLLY_VOICE: "Kajal",
       POLLY_ENGINE: "neural",
       SIM_DAILY_TTS_CHARS: 100000,

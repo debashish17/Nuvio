@@ -6,7 +6,13 @@ import { isRefusal } from "../../core/refusal.js";
 import { toWire } from "../wire.js";
 import type { ChatEngine } from "./scripted.js";
 import { DEMO_BEATS } from "./scripted.js";
-import { hasCode, RateLimiter, requireCode, type DailyBudget } from "./guards.js";
+import {
+  hasCode,
+  RateLimiter,
+  requireCode,
+  type DailyBudget,
+  type DemoFreshness,
+} from "./guards.js";
 import { FrameStore, viewCsp } from "./frames.js";
 import { UI_MIME, viewOf, visibleTo, type Exchange, type McpRelay } from "./relay.js";
 import type { TtsService } from "./tts.js";
@@ -29,6 +35,8 @@ export interface SimDeps {
   devCode?: string | undefined;
   /** Wipes and reloads the demo seed. */
   reseed: () => void;
+  /** Hosted demos: a page load after a quiet spell reloads the seed (SIM_AUTO_RESET_MINUTES). */
+  freshness?: DemoFreshness | undefined;
   /** The assistant's Polly voice; omitted when POLLY_VOICE is "none" (the page uses the browser's). */
   tts?: TtsService | undefined;
   /** Single-use frames for MCP Apps views (SPEC "MCP Apps view"). */
@@ -82,11 +90,17 @@ export function simRouter(deps: SimDeps): Router {
     }),
   );
   router.use(express.json({ limit: "16kb" }));
+  // Every POST is a visitor acting; the state poll of an idle tab is not.
+  router.use((req, _res, next) => {
+    if (req.method === "POST") deps.freshness?.touch();
+    next();
+  });
 
   // Page load: a fresh initialize + tools/list so the protocol panel shows the real handshake.
   router.get("/tools", new RateLimiter(60, 10 * 60_000).middleware(), async (_req, res) => {
     const exchanges: Exchange[] = [];
     try {
+      const freshDemo = deps.freshness?.refresh() ?? false;
       relay.reset();
       const tools = await relay.listTools(exchanges);
       res.json({
@@ -97,6 +111,7 @@ export function simRouter(deps: SimDeps): Router {
         mode: deps.mode ?? "bedrock",
         llm: deps.llm ?? null,
         demo_beats: DEMO_BEATS,
+        fresh_demo: freshDemo,
       });
     } catch (err) {
       res.status(502).json({ error: "mcp_unavailable", message: String(err), exchanges });
@@ -264,6 +279,10 @@ export function devRouter(deps: SimDeps): Router {
   router.use(requireCode(deps.devCode, "x-dev-code", { status: 404, message: "Not found." }));
   router.use(express.json({ limit: "4kb" }));
   router.use(new RateLimiter(120, 10 * 60_000).middleware());
+  router.use((_req, _res, next) => {
+    deps.freshness?.touch();
+    next();
+  });
 
   router.post("/tick", (_req, res) => {
     res.json({ advanced: core.ledger.tick({ force: true }) });

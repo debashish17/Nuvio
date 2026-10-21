@@ -6,7 +6,7 @@ import { seed } from "../db/seed.js";
 import { createApp } from "./app.js";
 import { startJobs } from "./jobs.js";
 import { bedrockConverse, ChatService } from "./sim/chat.js";
-import { DailyBudget } from "./sim/guards.js";
+import { DailyBudget, DemoFreshness } from "./sim/guards.js";
 import { SYSTEM_PROMPT } from "./sim/prompt.js";
 import { decideMode, hasAwsCredentials } from "./sim/mode.js";
 import { openAiCompatibleConverse } from "./sim/openai.js";
@@ -84,6 +84,18 @@ const tts =
         dailyChars: config.SIM_DAILY_TTS_CHARS,
       });
 
+const reseed = () => {
+  seed(db);
+  chat.clear();
+  relay.reset();
+};
+// Hosted demos (SIM_AUTO_RESET_MINUTES): a visitor who opens the page after a quiet spell gets
+// fresh demo data dated today.
+const freshness = new DemoFreshness(config.SIM_AUTO_RESET_MINUTES * 60_000, () => {
+  reseed();
+  console.log("sim: demo seed reloaded for a new visitor");
+});
+
 const app = createApp({
   bearerToken: config.MCP_BEARER_TOKEN,
   core,
@@ -97,11 +109,10 @@ const app = createApp({
     mode,
     llm: mode === "scripted" ? null : llm,
     reseed: () => {
-      seed(db);
-      chat.clear();
-      relay.reset();
+      reseed();
       console.log("dev: demo seed reloaded");
     },
+    freshness,
   },
 });
 const httpServer = app.listen(config.PORT, (err) => {
@@ -111,7 +122,7 @@ const httpServer = app.listen(config.PORT, (err) => {
   }
   console.log(`nuvio-remit listening on :${config.PORT} (POST /mcp, GET /health)`);
   console.log(
-    `simulator ${config.SIM_ACCESS_CODE ? "on" : "off (set SIM_ACCESS_CODE)"}; dev controls ${config.DEV_CONTROLS_CODE ? "on" : "off"}; voice ${tts ? `Polly ${config.POLLY_VOICE} (${config.POLLY_ENGINE})` : "browser"}`,
+    `simulator ${config.SIM_ACCESS_CODE ? "on" : "off (set SIM_ACCESS_CODE)"}; dev controls ${config.DEV_CONTROLS_CODE ? "on" : "off"}; voice ${tts ? `Polly ${config.POLLY_VOICE} (${config.POLLY_ENGINE})` : "browser"}${freshness.minutes ? `; fresh demo data after ${freshness.minutes} quiet minutes` : ""}`,
   );
   console.log(
     mode === "scripted"
